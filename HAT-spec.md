@@ -1,4 +1,4 @@
-# HAT — Handpan ASCII Tab v1.3.2
+# HAT — Handpan ASCII Tab v1.3.3
 
 A plain-text notation system for handpan rhythms. Human-readable in monospace fonts, trivially machine-parseable.
 
@@ -11,6 +11,7 @@ A plain-text notation system for handpan rhythms. Human-readable in monospace fo
 | v1.3.0 | Section labels; note targeting; 3-char cells (Style A); triplet grids; `%` inline comments; `;;fields:` |
 | v1.3.1 | `triplet-4th` grid; `;;x-*:` extension namespace; `t`/`k` muted-tak symbols; compound-meter clarification; `%% %%` block comments; subdivision mismatch is now a hard parse error |
 | v1.3.2 | `;;notes:` + `;;note-numbers:` fields; numeric note aliases in tablature (1–3 digit numbers) |
+| v1.3.3 | `;;fields:` removed — superseded by `;;notes:` |
 
 ---
 
@@ -23,7 +24,7 @@ A HAT document has three layers, all optional except the version line:
 3. **Stanzas** — `R:` / `L:` line pairs containing the rhythm.
 
 ```
-;;HAT v1.3.2
+;;HAT v1.3.3
 ;;title: Groove in D Kurd
 ;;tempo: 92
 ;;time: 4/4
@@ -142,7 +143,7 @@ Multiple stanza pairs may appear within one section to break long patterns acros
 
 | Key | Meaning |
 |---|---|
-| `HAT v1.3.2` | Version declaration — must be the first `;;` line |
+| `HAT v1.3.3` | Version declaration — must be the first `;;` line |
 | `title:` | Pattern or song name |
 | `tempo:` | Beats per minute |
 | `time:` | Time signature, e.g. `4/4`, `7/8`, `12/8` |
@@ -412,7 +413,7 @@ Output: metadata dict + list of sections,
 ### A — Maqsoum (all defaults, 3-char Style A)
 
 ```
-;;HAT v1.3.2
+;;HAT v1.3.3
 ;;time: 4/4
 ;;grid: 8th
 
@@ -423,7 +424,7 @@ L: || -   | K   | -   | K   | -   | •   | -   | •   ||
 ### B — Note targeting with sections
 
 ```
-;;HAT v1.3.2
+;;HAT v1.3.3
 ;;tuning: D Kurd
 ;;time: 4/4
 ;;grid: 8th
@@ -441,7 +442,7 @@ L: || -   | K   | -   | K   | -   | K   | -   | K   ||
 ### C — Triplet-8th swing (3 cells per beat, 12 cells/bar in 4/4)
 
 ```
-;;HAT v1.3.2
+;;HAT v1.3.3
 ;;time: 4/4
 ;;grid: triplet-8th
 ;;tempo: 120
@@ -456,7 +457,7 @@ L: || -   -   K   | -   -   K   | -   -   K   | -   -   K   ||
 ### D — Muted taks and extension metadata
 
 ```
-;;HAT v1.3.2
+;;HAT v1.3.3
 ;;time: 4/4
 ;;grid: 8th
 ;;x-editor-id: session-42     % private extension, ignored by parsers
@@ -468,7 +469,7 @@ L: || -   | k   | -   | K   | -   | •   | -   | •   ||  % k = muted tak-L
 ### E — 3-against-2 polyrhythm (Style B, silent steps)
 
 ```
-;;HAT v1.3.2
+;;HAT v1.3.3
 ;;time: 2/4
 ;;grid: 16th
 
@@ -481,7 +482,7 @@ Cell 1 is a unison `(D, D)`. Cells 2 and 6 are silent `(-, -)`. Both are valid.
 ### F — Note-number aliases (Style A)
 
 ```
-;;HAT v1.3.2
+;;HAT v1.3.3
 ;;tuning: D Kurd
 ;;time: 4/4
 ;;grid: 8th
@@ -504,7 +505,7 @@ L: || -   | K   | -   | K   | -   | K   | -   | K   ||
 ## 11. Minimum well-formed document
 
 ```
-;;HAT v1.3.2
+;;HAT v1.3.3
 ;;grid: 8th
 
 R: || D   ||

@@ -1,6 +1,6 @@
-# World Rhythm Library — HAT v1.3.2 Edition
+# World Rhythm Library — HAT v1.3.3 Edition
 
-A reference library of traditional and global rhythms transcribed into Handpan ASCII Tab (HAT) v1.3.2 format. Each rhythm is presented in its **base/canonical form**, adapted for handpan playability per HAT v1.3.2 defaults:
+A reference library of traditional and global rhythms transcribed into Handpan ASCII Tab (HAT) v1.3.3 format. Each rhythm is presented in its **base/canonical form**, adapted for handpan playability per HAT v1.3.3 defaults:
 
 - Strict R-L alternation at the grid resolution wherever possible
 - Felt-grouping alternation (Default 2 relaxed) for asymmetric meters like 3+3+2
@@ -10,7 +10,7 @@ A reference library of traditional and global rhythms transcribed into Handpan A
 - Doums (`D`) freely swap hands as alternation requires
 - Ghost notes (`•`) maintain pulse on the active hand; `-` marks the resting hand
 
-All blocks are HAT v1.3.2. The `;;HAT v1.3.2` line is omitted for brevity but applies throughout.
+All blocks are HAT v1.3.3. The `;;HAT v1.3.3` line is omitted for brevity but applies throughout.
 
 **Source inspiration:** Categories drawn from the Handpan Dojo World Rhythm Library by David Kuckhermann. Patterns here are canonical/textbook versions from common pedagogy, not direct transcriptions of his specific handpan interpretations.
 
