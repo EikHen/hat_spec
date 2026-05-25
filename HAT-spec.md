@@ -1,4 +1,4 @@
-# HAT — Handpan ASCII Tab v1.3.1
+# HAT — Handpan ASCII Tab v1.3.2
 
 A plain-text notation system for handpan rhythms. Human-readable in monospace fonts, trivially machine-parseable.
 
@@ -10,6 +10,7 @@ A plain-text notation system for handpan rhythms. Human-readable in monospace fo
 | v1.2.2 | Subdivision minimalism; `(-, -)` silent columns; T/K convention |
 | v1.3.0 | Section labels; note targeting; 3-char cells (Style A); triplet grids; `%` inline comments; `;;fields:` |
 | v1.3.1 | `triplet-4th` grid; `;;x-*:` extension namespace; `t`/`k` muted-tak symbols; compound-meter clarification; `%% %%` block comments; subdivision mismatch is now a hard parse error |
+| v1.3.2 | `;;notes:` + `;;note-numbers:` fields; numeric note aliases in tablature (1–3 digit numbers) |
 
 ---
 
@@ -22,7 +23,7 @@ A HAT document has three layers, all optional except the version line:
 3. **Stanzas** — `R:` / `L:` line pairs containing the rhythm.
 
 ```
-;;HAT v1.3.1
+;;HAT v1.3.2
 ;;title: Groove in D Kurd
 ;;tempo: 92
 ;;time: 4/4
@@ -89,6 +90,10 @@ In **Style A** (aligned, with `|`), every cell is exactly **3 characters**. In *
 | Note C#3 | `C#3` | `C#3` |
 | Note D4 (natural) | `D4 ` | `D4` |
 | Note + flam | _(Style B only)_ | `F#4*` |
+| Note number (1-digit) | `0  ` | `0` |
+| Note number (2-digit) | `12 ` | `12` |
+| Note number (3-digit) | `100` | `100` |
+| Note number + flam | _(Style B only)_ | `0*` |
 
 ### Note names
 
@@ -137,13 +142,15 @@ Multiple stanza pairs may appear within one section to break long patterns acros
 
 | Key | Meaning |
 |---|---|
-| `HAT v1.3.1` | Version declaration — must be the first `;;` line |
+| `HAT v1.3.2` | Version declaration — must be the first `;;` line |
 | `title:` | Pattern or song name |
 | `tempo:` | Beats per minute |
 | `time:` | Time signature, e.g. `4/4`, `7/8`, `12/8` |
 | `grid:` | Cell duration — see grid table below |
 | `tuning:` | Handpan tuning, e.g. `D Kurd` |
 | `fields:` | Available tone fields, space-separated ascending pitch, e.g. `D4 E4 F#4 A4 B4` |
+| `notes:` | Available note names, space-separated — required when `note-numbers:` is used (see §5.1) |
+| `note-numbers:` | Numbers aliasing each note in `notes:`, same order, 1–3 digits each (see §5.1) |
 | `legend:` | Freeform symbol legend |
 | `x-*:` | Private extension — any key starting with `x-` (see below) |
 
@@ -171,6 +178,49 @@ Any `;;` key beginning with `x-` is a private extension. Parsers must silently p
 ```
 
 This prevents tool-specific headers from colliding with future official keys.
+
+### §5.1 Note-number aliases
+
+When `;;notes:` and `;;note-numbers:` are both present, each note name in `;;notes:` is aliased by the corresponding number in `;;note-numbers:`. In the tablature body, a 1–3 digit decimal number is treated exactly like the note name it aliases.
+
+```
+;;notes: D4 E4 F#4 A4 B4 D5 E5 F#5
+;;note-numbers: 0 1 2 3 4 5 6 7
+```
+
+Here `0` = `D4`, `1` = `E4`, `5` = `D5`, and so on. The two notations are interchangeable in any mix within a single document:
+
+```
+R: || 0   | -   | •   | -   | 3   | -   | 5   | -   ||
+L: || -   | K   | -   | K   | -   | K   | -   | K   ||
+```
+
+is equivalent to:
+
+```
+R: || D4  | -   | •   | -   | A4  | -   | D5  | -   ||
+L: || -   | K   | -   | K   | -   | K   | -   | K   ||
+```
+
+**Constraints:**
+
+- Both `;;notes:` and `;;note-numbers:` must appear together. Providing only one is a parse error.
+- The two lists must have the same number of entries. A length mismatch is a parse error.
+- Each number in `;;note-numbers:` must be unique. Duplicate numbers are a parse error.
+- Numbers are 1–3 decimal digits (range 0–999). Leading zeros are not permitted (e.g., `07` is a parse error).
+- Ascending from 0 is recommended but not required.
+- `;;notes:` serves the same note-validation role as `;;fields:`: when present, every note name or note number used in the body must resolve to an entry in the `;;notes:` list.
+- `;;notes:` and `;;fields:` may coexist; parsers apply validation from both independently.
+
+**Style A cell widths for note numbers:**
+
+| Digits | Example cell | Width |
+|---|---|---|
+| 1 | `0  ` | 3 chars (number + 2 spaces) |
+| 2 | `12 ` | 3 chars (number + 1 space) |
+| 3 | `100` | 3 chars (number fills cell) |
+
+Note numbers cannot carry a modifier in Style A (the cell is fully consumed at 3 chars for 3-digit numbers). Use Style B for number + modifier (`0*`).
 
 ---
 
@@ -305,6 +355,13 @@ Output: metadata dict + list of sections,
         'A'–'G'
         (excl. above)→ NOTE
 
+        '0'–'9'
+        (all digits) → NUMBER; look up in note-number map (from ;;notes:/;;note-numbers:)
+                         → resolve to the mapped note name → NOTE (as above)
+                       if note-number map is not defined → PARSE ERROR
+                       if number not found in map → PARSE ERROR
+                       if leading zero and len > 1 (e.g. "07") → PARSE ERROR
+
         Note parsing:
           pitch ← token[0]
           i ← 1
@@ -324,6 +381,17 @@ Output: metadata dict + list of sections,
 
 7. If ";;fields:" is present, every note name in the body must appear in
    that list. Unknown note names → PARSE ERROR.
+
+7a. Note-number alias validation (applied after header parsing, before body parsing):
+     - If exactly one of ";;notes:" / ";;note-numbers:" is present → PARSE ERROR.
+     - If both are present:
+         i.  The two lists must have the same entry count → PARSE ERROR if not.
+         ii. All entries in ";;note-numbers:" must be valid 1–3 digit decimal
+             integers with no leading zeros → PARSE ERROR otherwise.
+         iii.Entries in ";;note-numbers:" must be unique → PARSE ERROR if duplicate.
+         iv. Build the note-number map: number → note-name (parallel index).
+     - If ";;notes:" is present, every note name and every resolved note number
+       used in the body must appear in the ";;notes:" list → PARSE ERROR otherwise.
 
 ── Emission ────────────────────────────────────────────────────────────────
 
@@ -347,7 +415,7 @@ Output: metadata dict + list of sections,
 ### A — Maqsoum (all defaults, 3-char Style A)
 
 ```
-;;HAT v1.3.1
+;;HAT v1.3.2
 ;;time: 4/4
 ;;grid: 8th
 
@@ -358,7 +426,7 @@ L: || -   | K   | -   | K   | -   | •   | -   | •   ||
 ### B — Note targeting with sections
 
 ```
-;;HAT v1.3.1
+;;HAT v1.3.2
 ;;tuning: D Kurd
 ;;time: 4/4
 ;;grid: 8th
@@ -376,7 +444,7 @@ L: || -   | K   | -   | K   | -   | K   | -   | K   ||
 ### C — Triplet-8th swing (3 cells per beat, 12 cells/bar in 4/4)
 
 ```
-;;HAT v1.3.1
+;;HAT v1.3.2
 ;;time: 4/4
 ;;grid: triplet-8th
 ;;tempo: 120
@@ -391,7 +459,7 @@ L: || -   -   K   | -   -   K   | -   -   K   | -   -   K   ||
 ### D — Muted taks and extension metadata
 
 ```
-;;HAT v1.3.1
+;;HAT v1.3.2
 ;;time: 4/4
 ;;grid: 8th
 ;;x-editor-id: session-42     % private extension, ignored by parsers
@@ -403,7 +471,7 @@ L: || -   | k   | -   | K   | -   | •   | -   | •   ||  % k = muted tak-L
 ### E — 3-against-2 polyrhythm (Style B, silent steps)
 
 ```
-;;HAT v1.3.1
+;;HAT v1.3.2
 ;;time: 2/4
 ;;grid: 16th
 
@@ -413,12 +481,33 @@ L: || D - - D - - ||
 
 Cell 1 is a unison `(D, D)`. Cells 2 and 6 are silent `(-, -)`. Both are valid.
 
+### F — Note-number aliases (Style A)
+
+```
+;;HAT v1.3.2
+;;tuning: D Kurd
+;;time: 4/4
+;;grid: 8th
+;;notes: D4 E4 F#4 A4 B4 D5 E5 F#5
+;;note-numbers: 0 1 2 3 4 5 6 7
+
+[groove]
+R: || D   | -   | •   | -   | D   | -   | T   | -   ||
+L: || -   | K   | -   | K   | -   | •   | -   | •   ||
+
+[melody]
+R: || 2   | -   | 3   | -   | 4   | -   | 5   | -   ||
+L: || -   | K   | -   | K   | -   | K   | -   | K   ||
+```
+
+`2` resolves to `F#4`, `3` to `A4`, `4` to `B4`, `5` to `D5`. The groove section uses standard hit symbols; the melody section uses note numbers. Both are valid in the same document.
+
 ---
 
 ## 11. Minimum well-formed document
 
 ```
-;;HAT v1.3.1
+;;HAT v1.3.2
 ;;grid: 8th
 
 R: || D   ||
