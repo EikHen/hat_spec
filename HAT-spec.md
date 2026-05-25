@@ -29,7 +29,7 @@ A HAT document has three layers, all optional except the version line:
 ;;time: 4/4
 ;;grid: 8th
 ;;tuning: D Kurd
-;;fields: D4 E4 F#4 A4 B4 D5 E5 F#5
+;;notes: D4 E4 F#4 A4 B4 D5 E5 F#5
 
 [intro]
 R: || D   | -   | •   | -   | D   | -   | T   | -   ||
@@ -148,8 +148,7 @@ Multiple stanza pairs may appear within one section to break long patterns acros
 | `time:` | Time signature, e.g. `4/4`, `7/8`, `12/8` |
 | `grid:` | Cell duration — see grid table below |
 | `tuning:` | Handpan tuning, e.g. `D Kurd` |
-| `fields:` | Available tone fields, space-separated ascending pitch, e.g. `D4 E4 F#4 A4 B4` |
-| `notes:` | Available note names, space-separated — required when `note-numbers:` is used (see §5.1) |
+| `notes:` | Available note names, space-separated ascending pitch, e.g. `D4 E4 F#4 A4 B4` — also required when `note-numbers:` is used (see §5.1) |
 | `note-numbers:` | Numbers aliasing each note in `notes:`, same order, 1–3 digits each (see §5.1) |
 | `legend:` | Freeform symbol legend |
 | `x-*:` | Private extension — any key starting with `x-` (see below) |
@@ -209,8 +208,7 @@ L: || -   | K   | -   | K   | -   | K   | -   | K   ||
 - Each number in `;;note-numbers:` must be unique. Duplicate numbers are a parse error.
 - Numbers are 1–3 decimal digits (range 0–999). Leading zeros are not permitted (e.g., `07` is a parse error).
 - Ascending from 0 is recommended but not required.
-- `;;notes:` serves the same note-validation role as `;;fields:`: when present, every note name or note number used in the body must resolve to an entry in the `;;notes:` list.
-- `;;notes:` and `;;fields:` may coexist; parsers apply validation from both independently.
+- When `;;notes:` is present, every note name and every resolved note number used in the body must appear in the `;;notes:` list → PARSE ERROR otherwise.
 
 **Style A cell widths for note numbers:**
 
@@ -379,10 +377,9 @@ Output: metadata dict + list of sections,
        (active, -)    (-, active)    (active, active)    (-, -)
      "active" = any symbol other than '-'.
 
-7. If ";;fields:" is present, every note name in the body must appear in
-   that list. Unknown note names → PARSE ERROR.
-
-7a. Note-number alias validation (applied after header parsing, before body parsing):
+7. Note validation (applied after header parsing, before body parsing):
+     - If ";;notes:" is present, every note name used in the body must appear in
+       that list → PARSE ERROR otherwise.
      - If exactly one of ";;notes:" / ";;note-numbers:" is present → PARSE ERROR.
      - If both are present:
          i.  The two lists must have the same entry count → PARSE ERROR if not.
@@ -390,8 +387,8 @@ Output: metadata dict + list of sections,
              integers with no leading zeros → PARSE ERROR otherwise.
          iii.Entries in ";;note-numbers:" must be unique → PARSE ERROR if duplicate.
          iv. Build the note-number map: number → note-name (parallel index).
-     - If ";;notes:" is present, every note name and every resolved note number
-       used in the body must appear in the ";;notes:" list → PARSE ERROR otherwise.
+         v.  Every note number used in the body must appear in the map
+             → PARSE ERROR otherwise.
 
 ── Emission ────────────────────────────────────────────────────────────────
 
@@ -430,7 +427,7 @@ L: || -   | K   | -   | K   | -   | •   | -   | •   ||
 ;;tuning: D Kurd
 ;;time: 4/4
 ;;grid: 8th
-;;fields: D4 E4 F#4 A4 B4 D5 E5 F#5
+;;notes: D4 E4 F#4 A4 B4 D5 E5 F#5
 
 [groove x2]
 R: || D   | -   | •   | -   | D   | -   | T   | -   ||
