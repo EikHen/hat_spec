@@ -58,7 +58,8 @@ L: ||| -  K  || -  K  || -  K  || -  K  |||
 | `t` | Tak, muted — damped edge tone, **R-line convention** |
 | `K` | Tak — open edge tone, **L-line convention** |
 | `k` | Tak, muted — damped edge tone, **L-line convention** |
-| `S` | Slap |
+| `S` | Slap / knock — any percussive body hit (slap on shell, knock on port, rim hit) |
+| `s` | Slap / knock, muted — same as `S` but damped |
 | `•` | Ghost — felt movement, inaudible |
 | `-` | Rest — hand does nothing |
 

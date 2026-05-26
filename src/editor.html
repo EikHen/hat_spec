@@ -6,17 +6,69 @@
 <title>HAT Editor</title>
 <style>
 :root {
-  --bg: #222226; --bg2: #2c2c32; --bg3: #37373f; --bg4: #44444e;
-  --fg: #eaeaea; --fg2: #b8b8b8; --fg3: #686868;
+  /* ── Surfaces ── */
+  --bg:  #2e2e34;   /* main background */
+  --bg2: #38383f;   /* panels, toolbars */
+  --bg3: #424249;   /* inputs, buttons */
+  --bg4: #505059;   /* hover states */
+
+  /* ── Text ── */
+  --fg:  #eaeaea;
+  --fg2: #b8b8b8;
+  --fg3: #727278;
+
+  /* ── Accent / brand ── */
+  --accent: #7dd4ff;
+  --border: #48484f;
+
+  /* ── Hand colors ── */
   --R: #7dd4ff; --Rdim: #3870a8; --Rbg: #163045;
   --L: #ffc050; --Ldim: #8a6020; --Lbg: #3a2808;
-  --accent: #7dd4ff; --border: #3e3e3e;
+
+  /* ── Hit colors ── */
   --hit-D: #7dd4ff; --hit-T: #5ab0f0; --hit-K: #ffc050;
-  --hit-S: #d878f8; --hit-rest: #252528; --hit-note: #78e068;
-  --cell-w: 38px; --cell-h: 30px; --sub-gap: 4px;
+  --hit-S: #d878f8; --hit-note: #78e068;
+
+  /* ── Cell backgrounds ── */
+  --cell-rest-bg:  #2a2a2f;
+  --cell-D-bg:     #163450;
+  --cell-T-bg:     #12283c;
+  --cell-K-bg:     #3d2808;
+  --cell-S-bg:     #301244;
+  --cell-ghost-bg: #272729;
+  --cell-note-bg:  #132a13;
+
+  /* ── Bar / grid ── */
+  --bar-bg:          #2a2a32;
+  --bar-border:      #555570;
+  --bar-selected-bg: #1a2a40;
+
+  /* ── Separators ── */
+  --sep-beat:     #4a7aaa;
+  --sep-beat-dim: #3a5a88;
+  --sep-sub:      #505068;
+  --sep-sub-dim:  #3e3e58;
+
+  /* ── Count row ── */
+  --count-tok-fg: #9ab8d8;
+  --count-tok-bg: rgba(66,104,152,0.18);
+
+  /* ── Selection ── */
+  --col-sel-cell:  rgba(240,160,64,0.27);
+  --col-sel-strip: rgba(240,160,64,0.17);
+
+  /* ── Misc ── */
+  --scrim:   rgba(0,0,0,0.55);
+  --playing: rgba(255,255,255,0.87);
+
+  /* ── Geometry ── */
+  --cell-w: 38px; --cell-h: 30px;
+
+  /* ── Typography ── */
+  --font-mono: 'Menlo','Monaco','Consolas',monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--fg); font: 13px/1.4 'Menlo','Monaco','Consolas',monospace; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+body { background: var(--bg); color: var(--fg); font: 13px/1.4 var(--font-mono); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
 /* ── Toolbar ── */
 #toolbar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
@@ -58,11 +110,20 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
 
 /* ── HAT grid ── */
 .hat-section { }
-.section-label { font-size: 11px; color: var(--fg3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.section-label {
+  font-size: 11px; color: var(--fg3); margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  cursor: pointer; display: inline-block;
+}
+.section-label:hover { color: var(--fg2); }
+.section-add-bar {
+  font-size: 10px; padding: 1px 7px; margin-top: 4px; color: var(--fg3);
+  border-color: var(--border); display: inline-block;
+}
 /* Bars sit in a flex row; large gap between bar boxes (bars are the primary structure) */
-.hat-grid { display: flex; gap: 14px; align-items: flex-start; }
+.hat-grid { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
 /* bar = a visible box — the primary structural unit */
-.bar-block { display: flex; flex-direction: column; gap: 2px; background: #292934; border: 1px solid #555570; border-radius: 5px; padding: 4px 5px; }
+.bar-block { display: flex; flex-direction: column; gap: 2px; background: var(--bar-bg); border: 1px solid var(--bar-border); border-radius: 5px; padding: 4px 5px; }
 .bar-num { font-size: 10px; color: var(--fg3); text-align: center; padding-bottom: 2px; }
 
 /* bar-rows: flat flex-column containing all rows for one bar */
@@ -84,7 +145,7 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
 }
 .hat-cell:hover { border-color: var(--accent) !important; }
 .hat-cell.hovered { border-color: var(--accent) !important; outline: 1px solid var(--accent); }
-.hat-cell.playing { outline: 2px solid #fffc; outline-offset: 1px; }
+.hat-cell.playing { outline: 2px solid var(--playing); outline-offset: 1px; }
 
 /* Reserve separator space on ALL non-first cells in a bar — prevents dimension shift on toggle.
    2px margin + 2px border = 4px total reserved; toggling only changes border color/style. */
@@ -95,32 +156,32 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
 .bar-rows .colsel-row > *:not(:first-child) {
   margin-left: 2px; border-left: 2px solid transparent;
 }
-/* Beat boundary (||) — solid, slightly thicker than sub-group line */
-.bar-rows .hat-cell.beat-start     { border-left: 2px solid #4a7aaa !important; }
-.bar-rows .subdiv-btn.beat-start   { border-left: 2px solid #3a5a88; }
-.bar-rows .count-cell.beat-start   { border-left: 2px solid #3a5a88; }
-.bar-rows .colsel-cell.beat-start  { border-left: 2px solid #3a5a88; }
+/* Beat boundary (||) — solid */
+.bar-rows .hat-cell.beat-start     { border-left: 2px solid var(--sep-beat) !important; }
+.bar-rows .subdiv-btn.beat-start   { border-left: 2px solid var(--sep-beat-dim); }
+.bar-rows .count-cell.beat-start   { border-left: 2px solid var(--sep-beat-dim); }
+.bar-rows .colsel-cell.beat-start  { border-left: 2px solid var(--sep-beat-dim); }
 /* Sub-group boundary (|) — dashed, same width (stable layout) */
-.bar-rows .hat-cell.sub-start      { border-left: 2px dashed #454560 !important; }
-.bar-rows .subdiv-btn.sub-start    { border-left: 2px dashed #3c3c58; }
-.bar-rows .count-cell.sub-start    { border-left: 2px dashed #3c3c58; }
-.bar-rows .colsel-cell.sub-start   { border-left: 2px dashed #3c3c58; }
+.bar-rows .hat-cell.sub-start      { border-left: 2px dashed var(--sep-sub) !important; }
+.bar-rows .subdiv-btn.sub-start    { border-left: 2px dashed var(--sep-sub-dim); }
+.bar-rows .count-cell.sub-start    { border-left: 2px dashed var(--sep-sub-dim); }
+.bar-rows .colsel-cell.sub-start   { border-left: 2px dashed var(--sep-sub-dim); }
 
 /* Cell type colors — vivid */
-.k-rest  { background: #252528; color: #505050; }
-.k-D     { background: #153248; color: #7dd4ff; }
-.k-T     { background: #112638; color: #5ab0f0; }
-.k-K     { background: #3a2508; color: #ffc050; }
-.k-S     { background: #2e1040; color: #d878f8; }
-.k-ghost { background: #242424; color: #6a6a6a; font-style: italic; }
-.k-note  { background: #122612; color: #78e068; }
-/* Muted — same hue, halved brightness */
-.k-d { background: #153248; color: #3d7aa0; }
-.k-t { background: #112638; color: #2d6890; }
-.k-k { background: #3a2508; color: #887030; }
-.k-s { background: #2e1040; color: #703890; }
+.k-rest  { background: var(--cell-rest-bg); color: var(--fg3); }
+.k-D     { background: var(--cell-D-bg);    color: var(--hit-D); }
+.k-T     { background: var(--cell-T-bg);    color: var(--hit-T); }
+.k-K     { background: var(--cell-K-bg);    color: var(--hit-K); }
+.k-S     { background: var(--cell-S-bg);    color: var(--hit-S); }
+.k-ghost { background: var(--cell-ghost-bg); color: var(--fg3); font-style: italic; }
+.k-note  { background: var(--cell-note-bg); color: var(--hit-note); }
+/* Muted — same bg, dimmed fg */
+.k-d { background: var(--cell-D-bg); color: #3d7aa0; }
+.k-t { background: var(--cell-T-bg); color: #2d6890; }
+.k-k { background: var(--cell-K-bg); color: #887030; }
+.k-s { background: var(--cell-S-bg); color: #703890; }
 /* Hand tinting overrides (L-hand Doum = amber tone) */
-.hand-L.k-D { background: #3a2508; color: #ffc050; }
+.hand-L.k-D { background: var(--cell-K-bg); color: var(--hit-K); }
 
 /* ── Source panel ── */
 #source-wrap { border-top: 1px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; height: 160px; }
@@ -136,7 +197,7 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 #tap-btn { font-size: 11px; }
 
 /* ── Modal / overlay ── */
-#overlay { display: none; position: fixed; inset: 0; background: #0008; z-index: 100; align-items: center; justify-content: center; }
+#overlay { display: none; position: fixed; inset: 0; background: var(--scrim); z-index: 100; align-items: center; justify-content: center; }
 #overlay.show { display: flex; }
 .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; min-width: 300px; }
 .modal h2 { margin-bottom: 12px; font-size: 14px; }
@@ -144,9 +205,9 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 .modal-btns { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
 
 /* Bar & column selection */
-.bar-block.bar-selected { border-color: var(--accent) !important; background: #1a2a40; }
+.bar-block.bar-selected { border-color: var(--accent) !important; background: var(--bar-selected-bg); }
 .bar-num.bar-selected { color: var(--accent); }
-.hat-cell.col-selected { outline: 1px solid #f0a04088; }
+.hat-cell.col-selected { outline: 1px solid var(--col-sel-cell); }
 
 /* Count row (C: line display) */
 .count-row { display: flex; }
@@ -155,7 +216,8 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
   align-items: center; justify-content: center; font-size: 9px;
   color: var(--fg3); user-select: none; letter-spacing: -0.5px; border-radius: 2px;
 }
-.count-cell.has-tok { color: #9ab8d8; font-weight: 700; background: rgba(66,104,152,0.18); }
+.count-cell { cursor: pointer; }
+.count-cell.has-tok { color: var(--count-tok-fg); font-weight: 700; background: var(--count-tok-bg); }
 /* C: label in row-label column */
 .row-label.C { color: var(--fg3); height: 14px; font-style: italic; }
 
@@ -168,7 +230,7 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 }
 .subdiv-btn::after { content: '·'; }
 .subdiv-btn.on::after { content: '|'; color: var(--fg2); }
-.subdiv-btn.beat-start::after { content: '||'; color: #4a7aaa; }
+.subdiv-btn.beat-start::after { content: '||'; color: var(--sep-beat); }
 /* bar-start = first cell in a bar */
 .subdiv-btn.bar-start::after { content: '|||'; color: var(--fg3); font-size: 8px; cursor: default; }
 .subdiv-btn:not(.bar-start):hover { background: var(--bg4); color: var(--accent); }
@@ -180,7 +242,7 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
   background: transparent;
 }
 .colsel-cell:hover { background: var(--bg4); }
-.colsel-cell.col-selected { background: #f0a04044; }
+.colsel-cell.col-selected { background: var(--col-sel-strip); }
 
 /* Bar +/- controls */
 .bar-ctrls { display: flex; justify-content: center; gap: 4px; padding-top: 2px; }
@@ -195,7 +257,7 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 .note-popup {
   position: fixed; z-index: 3000; background: var(--bg2);
   border: 1px solid var(--border); border-radius: 7px;
-  padding: 10px; min-width: 200px; box-shadow: 0 8px 32px #0009;
+  padding: 10px; min-width: 200px; box-shadow: 0 8px 32px var(--scrim);
   display: flex; flex-direction: column; gap: 6px;
 }
 .note-popup-lbl { font-size: 10px; color: var(--fg3); }
@@ -215,12 +277,20 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 .note-popup-inp:focus { border-color: var(--accent); }
 
 /* Notes modal */
-#notes-overlay { display: none; position: fixed; inset: 0; background: #0008; z-index: 100; align-items: center; justify-content: center; }
+#notes-overlay { display: none; position: fixed; inset: 0; background: var(--scrim); z-index: 100; align-items: center; justify-content: center; }
 #notes-overlay.show { display: flex; }
 .notes-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 12px; }
 .notes-row label { color: var(--fg2); width: 110px; flex-shrink: 0; }
 .notes-row input { flex: 1; background: var(--bg3); border: 1px solid var(--border); color: var(--fg); padding: 4px 6px; border-radius: 4px; font: inherit; }
 .notes-hint { font-size: 10px; color: var(--fg3); margin-bottom: 8px; }
+
+/* Inline count-cell editor */
+#count-inp {
+  position: fixed; z-index: 500; text-align: center; outline: none;
+  background: var(--bg3); color: var(--count-tok-fg);
+  border: 1px solid var(--accent); border-radius: 2px; padding: 0;
+  font: 9px/1 var(--font-mono);
+}
 
 /* scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -269,7 +339,7 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
       <span class="key-hint"><kbd>.</kbd> Ghost</span>
       <span class="key-hint"><kbd>-</kbd> Rest</span>
       <span class="key-hint"><kbd>d/t/k/s</kbd> muted</span>
-      <span class="key-hint"><kbd>*</kbd> flam</span>
+      <span class="key-hint"><kbd>*/^</kbd> flam</span>
       <div class="tb-sep"></div>
       <span class="key-hint"><kbd>1–9,0</kbd> note</span>
       <span class="key-hint"><kbd>n</kbd> picker</span>
@@ -277,6 +347,9 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
       <span class="key-hint"><kbd>i/o</kbd> insert col</span>
       <span class="key-hint"><kbd>x</kbd> del col</span>
       <span class="key-hint"><kbd>I</kbd> | toggle</span>
+      <span class="key-hint"><kbd>B</kbd> || toggle</span>
+      <div class="tb-sep"></div>
+      <button id="btn-add-section">+ Section</button>
       <div class="tb-sep"></div>
       <span class="key-hint"><kbd>click bar#</kbd> select</span>
       <span class="key-hint"><kbd>Ctrl+C/V</kbd> copy/paste</span>
@@ -848,7 +921,9 @@ function renderGrid(parsed) {
     const sec=parsed.sections[si];
     const secDiv=document.createElement('div'); secDiv.className='hat-section';
     if (sec.label) {
-      const lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent=sec.label;
+      const lbl=document.createElement('div'); lbl.className='section-label';
+      lbl.textContent=sec.label; lbl.title='Click to rename';
+      lbl.onclick=()=>openSectionLabelEditor(lbl,si);
       secDiv.appendChild(lbl);
     }
     const gridDiv=document.createElement('div'); gridDiv.className='hat-grid';
@@ -905,10 +980,12 @@ function renderGrid(parsed) {
         const subCls=(!isBarStart&&!col.beatStart&&col.sub)?' sub-start':'';
         const sepCls=beatCls||subCls;
 
-        // Count token cell
+        // Count token cell (click to edit)
         const cntCell=document.createElement('div');
         cntCell.className='count-cell'+sepCls+(col.countTok?' has-tok':'');
         cntCell.textContent=col.countTok||'';
+        cntCell.title='Click to edit count token';
+        cntCell.onclick=e=>{e.stopPropagation();openCountEditor(cntCell,si,bi,ci);};
         countRow.appendChild(cntCell);
 
         // Subdiv button: shows |||/||/|/· — click to toggle beat or sub boundary
@@ -968,6 +1045,15 @@ function renderGrid(parsed) {
       gridDiv.appendChild(barBlock);
     }
     secDiv.appendChild(gridDiv);
+    // "Add bar" button per section
+    const addBarBtn=document.createElement('button'); addBarBtn.className='section-add-bar';
+    addBarBtn.textContent='+ Bar'; addBarBtn.title='Add a bar to this section';
+    addBarBtn.onclick=()=>{
+      pushUndo();
+      state.parsed.sections[si].bars.push({cols:[{R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null}]});
+      syncSourceFromModel(); renderGrid(state.parsed);
+    };
+    secDiv.appendChild(addBarBtn);
     wrap.appendChild(secDiv);
   }
   gridScroll.scrollTop=savedScrollTop; gridScroll.scrollLeft=savedScrollLeft;
@@ -1159,6 +1245,53 @@ function refreshCellEl(sec,bar,col) {
 }
 
 // ─────────────────────────────────────────────
+//  INLINE COUNT EDITOR
+// ─────────────────────────────────────────────
+
+function openCountEditor(cellEl, sec, bar, col) {
+  document.getElementById('count-inp')?.remove();
+  const colObj=getColObj(sec,bar,col);
+  const rect=cellEl.getBoundingClientRect();
+  const inp=document.createElement('input');
+  inp.id='count-inp'; inp.type='text'; inp.value=colObj.countTok||'';
+  inp.style.cssText=`left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;`;
+  document.body.appendChild(inp); inp.focus(); inp.select();
+  function commit() {
+    inp.remove();
+    const v=inp.value.trim();
+    if (v===''||v==='e'||v==='&'||v==='a'||/^\d+$/.test(v)) {
+      pushUndo(); colObj.countTok=v||null;
+      syncSourceFromModel(); renderGrid(state.parsed);
+    } else setStatus(`Invalid count token "${v}" — use 1 2 3… e & a or empty`);
+  }
+  inp.addEventListener('keydown',e=>{
+    if (e.key==='Enter'){e.stopPropagation();commit();}
+    if (e.key==='Escape'){e.stopPropagation();inp.remove();}
+  });
+  inp.addEventListener('blur',commit);
+}
+
+// ─────────────────────────────────────────────
+//  SECTION LABEL EDITOR
+// ─────────────────────────────────────────────
+
+function openSectionLabelEditor(lblEl, si) {
+  const inp=document.createElement('input'); inp.type='text';
+  inp.value=state.parsed.sections[si].label||'';
+  inp.style.cssText='font-size:11px;text-transform:uppercase;letter-spacing:0.06em;background:var(--bg3);color:var(--fg);border:1px solid var(--accent);border-radius:3px;padding:1px 4px;width:120px;font:inherit;outline:none;';
+  lblEl.replaceWith(inp); inp.focus(); inp.select();
+  function commit() {
+    pushUndo(); state.parsed.sections[si].label=inp.value.trim();
+    syncSourceFromModel(); renderGrid(state.parsed);
+  }
+  inp.addEventListener('keydown',e=>{
+    if (e.key==='Enter'){e.stopPropagation();commit();}
+    if (e.key==='Escape'){e.stopPropagation();renderGrid(state.parsed);}
+  });
+  inp.addEventListener('blur',commit);
+}
+
+// ─────────────────────────────────────────────
 //  NOTE PICKER
 // ─────────────────────────────────────────────
 
@@ -1241,6 +1374,14 @@ gridWrap.addEventListener('mousedown',e=>{
 
 window.addEventListener('mouseup',()=>{_paintDown=false;});
 
+// Click on empty grid space → deselect bars and columns
+document.getElementById('grid-scroll').addEventListener('click',e=>{
+  if (e.target.closest('.hat-cell,.bar-num,.colsel-cell,.subdiv-btn,.count-cell,.bar-ctrl-btn,.section-add-bar,.section-label,button')) return;
+  if (_selBars.size===0&&_selCols.size===0) return;
+  _selBars=new Set(); _selCols=new Set();
+  renderGrid(state.parsed);
+});
+
 // ─────────────────────────────────────────────
 //  KEYBOARD
 // ─────────────────────────────────────────────
@@ -1270,8 +1411,9 @@ document.addEventListener('keydown',e=>{
   }
 
   switch(e.key) {
-    case '*': e.preventDefault(); pushUndo(); toggleFlam(sec,bar,col,hand); return;
+    case '*': case '^': e.preventDefault(); pushUndo(); toggleFlam(sec,bar,col,hand); return;
     case 'I': e.preventDefault(); toggleSubdiv(sec,bar,col); return;
+    case 'B': e.preventDefault(); toggleBeat(sec,bar,col); return;
     case 'i': e.preventDefault(); insertColBefore(sec,bar,col); return;
     case 'o': e.preventDefault(); insertColAfter(sec,bar,col); return;
     case 'x': case 'Delete': case 'Backspace': e.preventDefault(); deleteCol(sec,bar,col); return;
@@ -1338,6 +1480,15 @@ document.getElementById('btn-note-mode').onclick=()=>{
   btn.textContent=_showNoteNums?'Numbers':'Names';
   btn.classList.toggle('active',_showNoteNums);
   if (state.parsed?.ok) renderGrid(state.parsed);
+};
+
+document.getElementById('btn-add-section').onclick=()=>{
+  if (!state.parsed?.ok) return;
+  const label=window.prompt('Section name:','');
+  if (label===null) return; // cancelled
+  pushUndo();
+  state.parsed.sections.push({label:label.trim(),bars:[{cols:[{R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null}]}]});
+  syncSourceFromModel(); renderGrid(state.parsed);
 };
 
 document.getElementById('btn-new').onclick=()=>{

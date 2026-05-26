@@ -1,5 +1,9 @@
 *
 !HAT-spec.md
 !rhythm-library.md
-!hat-editor.html
+!src/
+!src/editor.html
+!src/index.html
 !LICENSE
+!README.md
+!hat-spec-extensions.md
