@@ -723,7 +723,7 @@ const PATTERNS = [
   { cat:'Spec', name:'Maqsoum',         time:'4/4', grid:'8th', hat:
 `// HAT v1.3.4 reference — always updated to latest spec version\n;;HAT v1.3.4\n;;title: Maqsoum\n;;time: 4/4\n;;grid: 8th\n\nC: ||| 1   &   || 2   &   || 3   &   || 4   &   |||\nR: ||| D   -   || •   -   || D   -   || T   -   |||\nL: ||| -   K   || -   K   || -   •   || -   •   |||` },
   { cat:'Spec', name:'Bulería',         time:'12/8', grid:'8th', hat:
-`// HAT v1.3.4 reference — always updated to latest spec version\n;;HAT v1.3.4\n;;title: Bulería\n;;time: 12/8\n;;grid: 8th\n;;subdivision: 3+3+2+2+2\n;;tuning: D Kurd\n;;notes:    D4  F4  A4  Bb4  C5  D5  F5\n;;note-numbers: 1   2   3   4    5   6   7\n;;x-chord-1: D4 A4 D5\n;;x-chord-2: F4 C5 F5\n\nC: ||| 1   e   &   || 2   e   &   || 3   &   || 4   &   || 5   &   |||\nR: ||| c1  -   3   || T   -   6   || c2  -   || 3   -   || c1  -   |||\nL: ||| -   3   -   || -   •   -   || -   •   || -   •   || -   3   |||` },
+`// HAT v1.3.4 reference — always updated to latest spec version\n;;HAT v1.3.4\n;;title: Bulería\n;;time: 12/8\n;;grid: 8th\n;;subdivision: 3+3+2+2+2\n;;tuning: D Kurd\n;;notes:       D4  F4  A4  Bb4  C5  D5  F5  G4  E4  Bb3  G5  A5\n;;note-numbers: 1   2   3   4    5   6   7   8   9   10   11  12\n;;x-chord-1: D4 A4 D5\n;;x-chord-2: F4 C5 F5\n;;x-chord-3: G4 D5 G5\n\nC: ||| 1   e   &   || 2   e   &   || 3   &   || 4   &   || 5   &   |||\nR: ||| c1  -   3   || T   -   6   || c2  -   || 3   -   || c1  -   |||\nL: ||| -   3   -   || -   •   -   || -   •   || -   •   || -   3   |||` },
 ];
 
 // ─────────────────────────────────────────────
@@ -1100,7 +1100,7 @@ const KEY_HIT={'D':'D','d':'d','T':'T','t':'t','K':'K','k':'k','S':'S','s':'s','
 let _hovered=null, _paintKey=null, _paintDown=false, _undoStack=[];
 
 // Buffered multi-digit note / chord input (hover + number, or c + number)
-let _typeBuf='', _typeTimer=null, _typeTarget=null, _typeMode=null;
+let _typeBuf='', _typeTimer=null, _typeTarget=null, _typeMode=null, _lastCPress=0;
 const TYPE_DELAY=500; // ms after last keypress before committing
 
 function commitTypeBuf() {
@@ -1356,6 +1356,57 @@ function openNotePicker(targetEl) {
   setTimeout(()=>document.addEventListener('mousedown',closeOut),0);
 }
 
+function openChordPicker(targetEl) {
+  document.getElementById('hat-chord-popup')?.remove();
+  document.getElementById('hat-note-popup')?.remove();
+  if (!state.parsed?.ok||!_hovered) return;
+  const chords=[];
+  let ci=1;
+  while (state.parsed.meta[`x-chord-${ci}`]) {
+    chords.push({token:`c${ci}`,def:state.parsed.meta[`x-chord-${ci}`]});
+    ci++;
+  }
+  const rect=targetEl.getBoundingClientRect();
+  const popup=document.createElement('div');
+  popup.id='hat-chord-popup'; popup.className='note-popup';
+  popup.style.left=`${Math.min(rect.left,window.innerWidth-260)}px`;
+  popup.style.top=`${rect.bottom+6}px`;
+
+  if (chords.length>0) {
+    const lbl=document.createElement('div'); lbl.className='note-popup-lbl'; lbl.textContent='Pick chord:';
+    popup.appendChild(lbl);
+    const grid=document.createElement('div'); grid.className='note-popup-grid';
+    chords.forEach(({token,def})=>{
+      const btn=document.createElement('button'); btn.className='note-popup-btn';
+      const kEl=document.createElement('span'); kEl.className='npop-key'; kEl.textContent=token;
+      btn.append(kEl,document.createTextNode(def));
+      btn.onmousedown=e=>{e.preventDefault();e.stopPropagation();commitChord(token);};
+      grid.appendChild(btn);
+    });
+    popup.appendChild(grid);
+  }
+
+  const inp=document.createElement('input'); inp.type='text'; inp.className='note-popup-inp';
+  inp.placeholder=chords.length?'or type chord token (e.g. c3)…':'Chord token (e.g. c1)';
+  inp.onkeydown=e=>{
+    if (e.key==='Enter'){e.stopPropagation();commitChord(inp.value.trim());}
+    if (e.key==='Escape'){e.stopPropagation();popup.remove();}
+  };
+  popup.appendChild(inp); document.body.appendChild(popup); inp.focus();
+
+  requestAnimationFrame(()=>{
+    if (popup.getBoundingClientRect().bottom>window.innerHeight-8)
+      popup.style.top=`${rect.top-popup.offsetHeight-6}px`;
+  });
+
+  function commitChord(token) {
+    popup.remove(); if (!token||!_hovered||!state.parsed?.ok) return;
+    pushUndo(); applyHit(_hovered.sec,_hovered.bar,_hovered.col,_hovered.hand,token);
+  }
+  const closeOut=e=>{if(!popup.contains(e.target)&&e.target!==targetEl){popup.remove();document.removeEventListener('mousedown',closeOut);}};
+  setTimeout(()=>document.addEventListener('mousedown',closeOut),0);
+}
+
 // ─────────────────────────────────────────────
 //  EVENT DELEGATION
 // ─────────────────────────────────────────────
@@ -1441,13 +1492,22 @@ document.addEventListener('keydown',e=>{
     case 'o': e.preventDefault(); insertColAfter(sec,bar,col); return;
     case 'x': case 'Delete': case 'Backspace': e.preventDefault(); deleteCol(sec,bar,col); return;
     case 'n': e.preventDefault(); openNotePicker(_hovered.el); return;
-    case 'c':
-      // Start buffered chord input: c + digits → 'c1', 'c12', etc.
+    case 'c': {
       e.preventDefault();
-      commitTypeBuf(); // cancel any pending note buffer
-      _typeMode='chord'; _typeBuf=''; _typeTarget={sec,bar,col,hand};
-      clearTimeout(_typeTimer); _typeTimer=setTimeout(commitTypeBuf,TYPE_DELAY);
+      const now=Date.now();
+      if (now-_lastCPress<350) {
+        // Double 'c' → open chord picker panel
+        commitTypeBuf(); _lastCPress=0;
+        openChordPicker(_hovered.el);
+      } else {
+        // Single 'c' → start buffered chord input: c + digits → 'c1', 'c12', etc.
+        commitTypeBuf();
+        _typeMode='chord'; _typeBuf=''; _typeTarget={sec,bar,col,hand};
+        clearTimeout(_typeTimer); _typeTimer=setTimeout(commitTypeBuf,TYPE_DELAY);
+        _lastCPress=now;
+      }
       return;
+    }
   }
 
   // Digit keys → start buffered note input; hover position locked at first keypress
