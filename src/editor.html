@@ -1099,6 +1099,24 @@ const KEY_HIT={'D':'D','d':'d','T':'T','t':'t','K':'K','k':'k','S':'S','s':'s','
 
 let _hovered=null, _paintKey=null, _paintDown=false, _undoStack=[];
 
+// Buffered multi-digit note / chord input (hover + number, or c + number)
+let _typeBuf='', _typeTimer=null, _typeTarget=null, _typeMode=null;
+const TYPE_DELAY=500; // ms after last keypress before committing
+
+function commitTypeBuf() {
+  clearTimeout(_typeTimer); _typeTimer=null;
+  const mode=_typeMode, buf=_typeBuf, tgt=_typeTarget;
+  _typeMode=null; _typeBuf=''; _typeTarget=null;
+  if (!tgt||!state.parsed?.ok) return;
+  if (mode==='note') {
+    const idx=parseInt(buf,10)-1;
+    const notes=state.parsed.meta._noteNames||[];
+    if (idx>=0&&notes[idx]) { pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,notes[idx]); }
+  } else if (mode==='chord'&&buf) {
+    pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,'c'+buf);
+  }
+}
+
 function pushUndo() {
   _undoStack.push(document.getElementById('source').value);
   if (_undoStack.length>60) _undoStack.shift();
@@ -1396,6 +1414,15 @@ document.addEventListener('keydown',e=>{
   if (_selBars.size>0&&(e.key==='Delete'||e.key==='Backspace'||e.key==='x')) {
     e.preventDefault(); deleteSelectedBars(); return;
   }
+
+  // Feed ongoing type buffer — works even if hover has moved since first digit
+  if (_typeMode&&FIELD_DIGIT_KEYS.includes(e.key)) {
+    e.preventDefault();
+    _typeBuf+=e.key;
+    clearTimeout(_typeTimer); _typeTimer=setTimeout(commitTypeBuf,TYPE_DELAY);
+    return;
+  }
+
   if (!_hovered||!state.parsed?.ok) return;
 
   const {sec,bar,col,hand}=_hovered;
@@ -1414,21 +1441,23 @@ document.addEventListener('keydown',e=>{
     case 'o': e.preventDefault(); insertColAfter(sec,bar,col); return;
     case 'x': case 'Delete': case 'Backspace': e.preventDefault(); deleteCol(sec,bar,col); return;
     case 'n': e.preventDefault(); openNotePicker(_hovered.el); return;
+    case 'c':
+      // Start buffered chord input: c + digits → 'c1', 'c12', etc.
+      e.preventDefault();
+      commitTypeBuf(); // cancel any pending note buffer
+      _typeMode='chord'; _typeBuf=''; _typeTarget={sec,bar,col,hand};
+      clearTimeout(_typeTimer); _typeTimer=setTimeout(commitTypeBuf,TYPE_DELAY);
+      return;
   }
 
-  // Digit keys → note by index (1→0, 2→1, …, 0→9)
+  // Digit keys → start buffered note input; hover position locked at first keypress
   if (FIELD_DIGIT_KEYS.includes(e.key)) {
     const notes=state.parsed.meta._noteNames||[];
-    const idx=e.key==='0'?9:parseInt(e.key,10)-1;
-    if (notes[idx]) { e.preventDefault(); pushUndo(); applyHit(sec,bar,col,hand,notes[idx]); _paintKey=notes[idx]; }
+    if (!notes.length) return;
+    e.preventDefault();
+    _typeMode='note'; _typeBuf=e.key; _typeTarget={sec,bar,col,hand};
+    clearTimeout(_typeTimer); _typeTimer=setTimeout(commitTypeBuf,TYPE_DELAY);
     return;
-  }
-
-  // Letter keys → notes 10+ (q=10, w=11, …)
-  const li=FIELD_LETTER_KEYS.indexOf(e.key);
-  if (li>=0) {
-    const notes=state.parsed.meta._noteNames||[];
-    if (notes[10+li]) { e.preventDefault(); pushUndo(); applyHit(sec,bar,col,hand,notes[10+li]); _paintKey=notes[10+li]; }
   }
 });
 
