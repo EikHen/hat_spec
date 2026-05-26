@@ -1,0 +1,7 @@
+;;HAT v1.3.4
+;;title: Scale Run
+;;notes:    D4 F#4 A4 D5
+;;note-numbers: 1  2   3  4
+
+R: ||| 1   2   || 3   4   |||
+L: ||| -   -   || -   -   |||

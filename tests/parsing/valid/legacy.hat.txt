@@ -1,0 +1,7 @@
+// Legacy format (no ;;HAT version header = v1.3.3 and earlier)
+;;title: Maqsoum (legacy)
+;;time: 4/4
+;;grid: 8th
+
+R: || D  | -  | •  | -  | D  | -  | T  | -  ||
+L: || -  | K  | -  | K  | -  | •  | -  | •  ||

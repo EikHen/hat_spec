@@ -75,7 +75,7 @@ An external JSON dictionary can replace the inline map via `;;x-note-json:` (see
 | File | Description |
 |---|---|
 | `HAT-spec.md` | Full language specification |
-| `hat-spec-extensions.md` | Standard optional extensions (`;;x-*:`) |
+| `extensions/` | Standard optional extensions (`;;x-*:`), one file each |
 | `rhythm-library.md` | Reference rhythm library |
 | `src/editor.html` | Browser-based visual editor |
 

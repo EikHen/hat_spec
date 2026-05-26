@@ -1,0 +1,11 @@
+;;HAT v1.3.4
+;;title: Chord Study
+;;tuning: D Kurd 9
+;;notes:    D4 F#4 A4 D5 F#5
+;;note-numbers: 1  2   3  4  5
+;;x-chord-1: D4 F#4 A4
+;;x-chord-2: F#4 A4 D5
+
+// Chord 1 on beat 1, chord 2 on beat 3
+R: ||| c1  -   || -   -   || c2  -   || -   -   |||
+L: ||| -   -   || -   -   || -   -   || -   -   |||

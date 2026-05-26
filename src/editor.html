@@ -996,15 +996,15 @@ function renderGrid(parsed) {
         } else if (col.beatStart) {
           sdBtn.className='subdiv-btn beat-start';
           sdBtn.title='Beat boundary (||) — click to remove';
-          sdBtn.onclick=()=>{pushUndo();toggleBeat(si,bi,ci);};
+          sdBtn.onclick=()=>toggleBeat(si,bi,ci);
         } else if (col.sub) {
           sdBtn.className='subdiv-btn on'+sepCls;
           sdBtn.title='Sub-group (|) — click to toggle';
-          sdBtn.onclick=()=>{pushUndo();toggleSubdiv(si,bi,ci);};
+          sdBtn.onclick=()=>toggleSubdiv(si,bi,ci);
         } else {
           sdBtn.className='subdiv-btn'+sepCls;
           sdBtn.title='Click to add sub-group (|)';
-          sdBtn.onclick=()=>{pushUndo();toggleSubdiv(si,bi,ci);};
+          sdBtn.onclick=()=>toggleSubdiv(si,bi,ci);
         }
         subdivRow.appendChild(sdBtn);
 
@@ -1057,6 +1057,11 @@ function renderGrid(parsed) {
     wrap.appendChild(secDiv);
   }
   gridScroll.scrollTop=savedScrollTop; gridScroll.scrollLeft=savedScrollLeft;
+  // Restore hover element ref after DOM rebuild (preserves keyboard targeting)
+  if (_hovered && _hovered.el === null) {
+    const el = wrap.querySelector(`.hat-cell[data-sec="${_hovered.sec}"][data-bar="${_hovered.bar}"][data-col="${_hovered.col}"][data-hand="${_hovered.hand}"]`);
+    if (el) { _hovered.el = el; el.classList.add('hovered'); } else _hovered = null;
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -1215,7 +1220,8 @@ function removeLastColFromBar(sec,bar) {
 }
 
 function syncSourceFromModel() {
-  _hovered = null;  // grid will be rebuilt; clear stale ref
+  // Preserve coords but mark element as stale — renderGrid will restore it
+  if (_hovered) _hovered = {sec:_hovered.sec, bar:_hovered.bar, col:_hovered.col, hand:_hovered.hand, el:null};
   const text=serializeHAT(state.parsed.meta,state.parsed.sections);
   document.getElementById('source').value=text; state.hatText=text;
   // Rebuild flat cols + coords

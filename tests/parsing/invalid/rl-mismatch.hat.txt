@@ -1,0 +1,6 @@
+;;HAT v1.3.4
+;;title: R/L mismatch — should fail
+
+// R has 2 cols per beat, L has 1 — parse error expected
+R: ||| D   -   || T   -   |||
+L: ||| K   || -   |||

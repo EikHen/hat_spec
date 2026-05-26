@@ -1,0 +1,8 @@
+;;HAT v1.3.4
+;;title: Unknown note number — should fail
+;;notes: D4 F#4
+;;note-numbers: 1 2
+
+// Note number 9 not in map
+R: ||| 9   -   |||
+L: ||| -   -   |||

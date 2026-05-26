@@ -1,0 +1,10 @@
+;;HAT v1.3.4
+;;title: Multi-section
+
+;;section: intro
+R: ||| D   -   |||
+L: ||| -   •   |||
+
+;;section: verse
+R: ||| T   -   || D   -   |||
+L: ||| -   K   || -   •   |||

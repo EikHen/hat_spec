@@ -1,0 +1,8 @@
+;;HAT v1.3.4
+;;title: Night Groove
+;;time: 4/4
+;;grid: 8th
+;;x-color-scheme: dark
+
+R: ||| D   -   || T   -   || D   -   || T   -   |||
+L: ||| -   K   || -   K   || -   •   || -   •   |||

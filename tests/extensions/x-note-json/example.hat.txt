@@ -1,0 +1,9 @@
+;;HAT v1.3.4
+;;title: Scale Run
+;;tuning: D Kurd 9
+;;notes:    D4 E4 F#4 A4 B4 D5 E5 F#5 A5
+;;note-numbers: 1  2  3   4  5  6  7  8   9
+;;x-note-json: ./chords.json
+
+R: ||| 1  2  3  4  || 5  6  7  8  |||
+L: ||| -  -  -  -  || -  -  -  -  |||

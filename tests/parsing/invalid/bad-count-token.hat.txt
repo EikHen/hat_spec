@@ -1,0 +1,7 @@
+;;HAT v1.3.4
+;;title: Invalid count token — should fail
+
+// 'x' is not a valid count token
+C: ||| x   &   |||
+R: ||| D   -   |||
+L: ||| -   K   |||

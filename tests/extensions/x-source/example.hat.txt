@@ -1,0 +1,8 @@
+;;HAT v1.3.4
+;;title: Maqsoum (transcribed)
+;;time: 4/4
+;;grid: 8th
+;;x-source: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+R: ||| D   -   || •   -   || D   -   || T   -   |||
+L: ||| -   K   || -   K   || -   •   || -   •   |||
