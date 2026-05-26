@@ -1,0 +1,7 @@
+;;title: Keherwa
+;;time: 8/4
+;;grid: 4th
+;;subdivision: 4+4
+
+R: || D  | -  | •  | -  || D  | -  | T  | -  ||
+L: || -  | K  | -  | •  || -  | K  | -  | •  ||

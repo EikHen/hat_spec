@@ -1,0 +1,7 @@
+;;title: Bulería
+;;time: 12/8
+;;grid: 8th
+;;subdivision: 3+3+2+2+2
+
+R: || D - • | T - • | D - | T - | D - ||
+L: || - • - | - • - | - • | - • | - • ||

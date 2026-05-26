@@ -1,0 +1,6 @@
+;;title: Partido Alto
+;;time: 4/4
+;;grid: 8th
+
+R: || •  | -  | T  | -  | D  | -  | T  | -  ||
+L: || -  | D  | -  | K  | -  | K  | -  | •  ||

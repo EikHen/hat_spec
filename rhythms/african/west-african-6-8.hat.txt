@@ -1,0 +1,6 @@
+;;title: West African 6/8
+;;time: 6/8
+;;grid: 8th
+
+R: || D | - | T | - | • | - ||
+L: || - | • | - | D | - | K ||

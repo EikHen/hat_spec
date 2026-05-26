@@ -1,0 +1,7 @@
+;;title: Teentaal
+;;time: 16/4
+;;grid: 4th
+;;subdivision: 4+4+4+4
+
+R: || D | T | T | D || D | T | T | D || • | T | T | D || D | T | T | D ||
+L: || - | • | • | - || - | • | • | - || - | • | • | - || - | • | • | - ||

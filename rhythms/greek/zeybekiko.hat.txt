@@ -1,0 +1,7 @@
+;;title: Zeybekiko
+;;time: 9/8
+;;grid: 8th
+;;subdivision: 2+2+2+3
+
+R: || D - | T - | D - | T - • ||
+L: || - • | - • | - • | - • - ||

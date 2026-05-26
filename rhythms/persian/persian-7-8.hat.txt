@@ -1,0 +1,7 @@
+;;title: Persian 7/8
+;;time: 7/8
+;;grid: 8th
+;;subdivision: 3+2+2
+
+R: || D - • | T - | T - ||
+L: || - • - | - • | - • ||

@@ -1,0 +1,7 @@
+;;title: Dadra
+;;time: 6/4
+;;grid: 4th
+;;subdivision: 3+3
+
+R: || D  | -  | •  || -  | T  | -  ||
+L: || -  | K  | -  || D  | -  | •  ||

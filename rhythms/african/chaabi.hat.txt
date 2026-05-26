@@ -1,0 +1,6 @@
+;;title: Chaabi
+;;time: 4/4
+;;grid: 8th
+
+R: || D  | -  | T  | -  | D  | T  | T  | -  ||
+L: || -  | K  | -  | K  | -  | -  | -  | K  ||

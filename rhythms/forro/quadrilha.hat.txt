@@ -1,0 +1,6 @@
+;;title: Quadrilha
+;;time: 2/4
+;;grid: 8th
+
+R: || D | - | T | - ||
+L: || - | K | - | K ||

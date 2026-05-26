@@ -1,0 +1,6 @@
+;;title: Coco
+;;time: 2/4
+;;grid: 16th
+
+R: || D - T - | D - • - ||
+L: || - • - • | - K - K ||

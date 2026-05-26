@@ -1,0 +1,6 @@
+;;title: Arrasta-pé
+;;time: 2/4
+;;grid: 16th
+
+R: || D - • - | D - • - ||
+L: || - D - K | - D - K ||

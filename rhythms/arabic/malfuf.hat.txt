@@ -1,0 +1,6 @@
+;;title: Malfuf
+;;time: 2/4
+;;grid: 16th
+
+R: || D - • - | • - T - ||
+L: || - • - K | - • - • ||

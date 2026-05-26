@@ -1,0 +1,7 @@
+;;title: 5/8 (2+3)
+;;time: 5/8
+;;grid: 8th
+;;subdivision: 2+3
+
+R: || D - | T - • ||
+L: || - • | - • - ||

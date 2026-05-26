@@ -19,3 +19,7 @@
 !tests/extensions/*/
 !tests/extensions/*/*.hat.txt
 !tests/extensions/*/*.json
+!rhythms/
+!rhythms/index.json
+!rhythms/*/
+!rhythms/*/*.hat.txt

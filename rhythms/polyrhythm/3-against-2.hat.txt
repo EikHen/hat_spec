@@ -1,0 +1,6 @@
+;;title: 3 against 2
+;;time: 6/8
+;;grid: 8th
+
+R: || D | - | - | D | - | - ||
+L: || D | • | D | • | D | • ||

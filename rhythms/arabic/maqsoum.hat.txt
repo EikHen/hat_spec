@@ -1,0 +1,6 @@
+;;title: Maqsoum
+;;time: 4/4
+;;grid: 8th
+
+R: || D  | -  | •  | -  | D  | -  | T  | -  ||
+L: || -  | K  | -  | K  | -  | •  | -  | •  ||

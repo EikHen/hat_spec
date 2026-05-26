@@ -723,104 +723,7 @@ const PATTERNS = [
   { cat:'Spec', name:'Maqsoum',         time:'4/4', grid:'8th', hat:
 `// HAT v1.3.4 reference — always updated to latest spec version\n;;HAT v1.3.4\n;;title: Maqsoum\n;;time: 4/4\n;;grid: 8th\n\nC: ||| 1   &   || 2   &   || 3   &   || 4   &   |||\nR: ||| D   -   || •   -   || D   -   || T   -   |||\nL: ||| -   K   || -   K   || -   •   || -   •   |||` },
   { cat:'Spec', name:'Bulería',         time:'12/8', grid:'8th', hat:
-`// HAT v1.3.4 reference — always updated to latest spec version\n;;HAT v1.3.4\n;;title: Bulería\n;;time: 12/8\n;;grid: 8th\n;;subdivision: 3+3+2+2+2\n\nC: ||| 1   e   &   || 2   e   &   || 3   &   || 4   &   || 5   &   |||\nR: ||| D   -   •   || T   -   •   || D   -   || T   -   || D   -   |||\nL: ||| -   •   -   || -   •   -   || -   •   || -   •   || -   •   |||` },
-  // ────────────────────────────────────────────────────────────────────────
-  { cat:'Arabic', name:'Maqsoum',       time:'4/4', grid:'8th', hat:
-`;;title: Maqsoum\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | •  | -  | D  | -  | T  | -  ||\nL: || -  | K  | -  | K  | -  | •  | -  | •  ||` },
-  { cat:'Arabic', name:'Belledi',        time:'4/4', grid:'8th', hat:
-`;;title: Belledi\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | •  | -  | D  | -  | T  | -  ||\nL: || -  | D  | -  | K  | -  | •  | -  | •  ||` },
-  { cat:'Arabic', name:'Saidi',          time:'4/4', grid:'8th', hat:
-`;;title: Saidi\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | T  | -  | D  | -  | T  | -  ||\nL: || -  | •  | -  | D  | -  | •  | -  | •  ||` },
-  { cat:'Arabic', name:'Malfuf',         time:'2/4', grid:'16th', hat:
-`;;title: Malfuf\n;;time: 2/4\n;;grid: 16th\n\nR: || D - • - | • - T - ||\nL: || - • - K | - • - • ||` },
-  { cat:'Arabic', name:'Khaligi',        time:'2/4', grid:'16th', hat:
-`;;title: Khaligi\n;;time: 2/4\n;;grid: 16th\n\nR: || D - • - | • - T - ||\nL: || - • - D | - • - • ||` },
-  { cat:'Arabic', name:'Ayoub',          time:'2/4', grid:'8th', hat:
-`;;title: Ayoub\n;;time: 2/4\n;;grid: 8th\n\nR: || D | - | T | - ||\nL: || - | • | - | D ||` },
-  { cat:'Arabic', name:'Wahda',          time:'4/4', grid:'8th', hat:
-`;;title: Wahda\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | •  | -  | •  | -  | T  | -  ||\nL: || -  | •  | -  | K  | -  | •  | -  | •  ||` },
-  { cat:'Arabic', name:'Sombati',        time:'4/4', grid:'8th', hat:
-`;;title: Sombati\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | T  | -  | •  | -  | D  | -  ||\nL: || -  | •  | -  | •  | -  | K  | -  | •  ||` },
-  { cat:'Persian', name:'Reng',          time:'6/8', grid:'8th', hat:
-`;;title: Reng\n;;time: 6/8\n;;grid: 8th\n\nR: || D | - | T | - | • | - ||\nL: || - | • | - | D | - | K ||` },
-  { cat:'Persian', name:'Persian 7/8',   time:'7/8', grid:'8th', hat:
-`;;title: Persian 7/8\n;;time: 7/8\n;;grid: 8th\n;;subdivision: 3+2+2\n\nR: || D - • | T - | T - ||\nL: || - • - | - • | - • ||` },
-  { cat:'Greek', name:'Hasapiko',        time:'4/4', grid:'8th', hat:
-`;;title: Hasapiko\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | T  | -  | D  | -  | T  | -  ||\nL: || -  | •  | -  | •  | -  | •  | -  | •  ||` },
-  { cat:'Greek', name:'Kalamatianos',    time:'7/8', grid:'8th', hat:
-`;;title: Kalamatianos\n;;time: 7/8\n;;grid: 8th\n;;subdivision: 3+2+2\n\nR: || D - • | T - | T - ||\nL: || - • - | - • | - • ||` },
-  { cat:'Greek', name:'Zeybekiko',       time:'9/8', grid:'8th', hat:
-`;;title: Zeybekiko\n;;time: 9/8\n;;grid: 8th\n;;subdivision: 2+2+2+3\n\nR: || D - | T - | D - | T - • ||\nL: || - • | - • | - • | - • - ||` },
-  { cat:'Flamenco', name:'Rumba Flamenca', time:'4/4', grid:'8th', hat:
-`;;title: Rumba Flamenca\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | T  | -  | D  | -  | •  | -  ||\nL: || -  | •  | -  | •  | -  | K  | -  | K  ||` },
-  { cat:'Flamenco', name:'Tangos Flamencos', time:'4/4', grid:'8th', hat:
-`;;title: Tangos Flamencos\n;;time: 4/4\n;;grid: 8th\n\nR: || •  | -  | D  | -  | •  | -  | D  | -  ||\nL: || -  | K  | -  | K  | -  | K  | -  | K  ||` },
-  { cat:'Flamenco', name:'Bulería',      time:'12/8', grid:'8th', hat:
-`;;title: Bulería\n;;time: 12/8\n;;grid: 8th\n;;subdivision: 3+3+2+2+2\n\nR: || D - • | T - • | D - | T - | D - ||\nL: || - • - | - • - | - • | - • | - • ||` },
-  { cat:'Indian', name:'Teentaal',       time:'16/4', grid:'4th', hat:
-`;;title: Teentaal\n;;time: 16/4\n;;grid: 4th\n;;subdivision: 4+4+4+4\n\nR: || D | T | T | D || D | T | T | D || • | T | T | D || D | T | T | D ||\nL: || - | • | • | - || - | • | • | - || - | • | • | - || - | • | • | - ||` },
-  { cat:'Indian', name:'Keherwa',        time:'8/4', grid:'4th', hat:
-`;;title: Keherwa\n;;time: 8/4\n;;grid: 4th\n;;subdivision: 4+4\n\nR: || D  | -  | •  | -  || D  | -  | T  | -  ||\nL: || -  | K  | -  | •  || -  | K  | -  | •  ||` },
-  { cat:'Indian', name:'Dadra',          time:'6/4', grid:'4th', hat:
-`;;title: Dadra\n;;time: 6/4\n;;grid: 4th\n;;subdivision: 3+3\n\nR: || D  | -  | •  || -  | T  | -  ||\nL: || -  | K  | -  || D  | -  | •  ||` },
-  { cat:'Indian', name:'Rupak',          time:'7/4', grid:'4th', hat:
-`;;title: Rupak\n;;time: 7/4\n;;grid: 4th\n;;subdivision: 3+2+2\n\nR: || T  | -  | •  || -  | T  || -  | T  ||\nL: || -  | K  | -  || D  | -  || D  | -  ||` },
-  { cat:'African', name:'West African 6/8', time:'6/8', grid:'8th', hat:
-`;;title: West African 6/8\n;;time: 6/8\n;;grid: 8th\n\nR: || D | - | T | - | • | - ||\nL: || - | • | - | D | - | K ||` },
-  { cat:'African', name:'Kuku',          time:'4/4', grid:'8th', hat:
-`;;title: Kuku\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | T  | -  | D  | -  | T  | -  ||\nL: || -  | K  | -  | •  | -  | K  | -  | •  ||` },
-  { cat:'African', name:'Gnawa',         time:'6/8', grid:'8th', hat:
-`;;title: Gnawa\n;;time: 6/8\n;;grid: 8th\n\nR: || D | - | T | D | - | T ||\nL: || - | • | - | - | • | - ||` },
-  { cat:'African', name:'Chaabi',        time:'4/4', grid:'8th', hat:
-`;;title: Chaabi\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | T  | -  | D  | T  | T  | -  ||\nL: || -  | K  | -  | K  | -  | -  | -  | K  ||` },
-  { cat:'Afro-Cuban', name:'Son Clave 3-2', time:'4/4', grid:'8th', hat:
-`;;title: Son Clave 3-2\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | •  | -  | •  | -  | D  | -  || •  | -  | T  | -  | T  | -  | •  | -  ||\nL: || -  | •  | -  | D  | -  | •  | -  | •  || -  | •  | -  | •  | -  | •  | -  | •  ||` },
-  { cat:'Afro-Cuban', name:'Rumba Clave 3-2', time:'4/4', grid:'8th', hat:
-`;;title: Rumba Clave 3-2\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | •  | -  | •  | -  | •  | -  || D  | -  | T  | -  | T  | -  | •  | -  ||\nL: || -  | •  | -  | D  | -  | •  | -  | D  || -  | •  | -  | •  | -  | •  | -  | •  ||` },
-  { cat:'Afro-Cuban', name:'Bembé',      time:'12/8', grid:'8th', hat:
-`;;title: Bembé\n;;time: 12/8\n;;grid: 8th\n\nR: || D | - | T | - | T | - || • | - | • | - | • | - ||\nL: || - | • | - | • | - | D || - | K | - | K | - | K ||` },
-  { cat:'Afro-Cuban', name:'Tumbao',     time:'4/4', grid:'8th', hat:
-`;;title: Tumbao\n;;time: 4/4\n;;grid: 8th\n\nR: || •  | -  | T  | -  | D  | -  | •  | -  ||\nL: || -  | •  | -  | K  | -  | •  | -  | D  ||` },
-  { cat:'Brazilian', name:'Samba',       time:'2/4', grid:'16th', hat:
-`;;title: Samba\n;;time: 2/4\n;;grid: 16th\n\nR: || D - T - | • - D - ||\nL: || - • - • | - K - K ||` },
-  { cat:'Brazilian', name:'Bossa Nova',  time:'4/4', grid:'8th', hat:
-`;;title: Bossa Nova\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | •  | -  | T  | -  | •  | -  ||\nL: || -  | •  | -  | K  | -  | •  | -  | K  ||` },
-  { cat:'Brazilian', name:'Baião',       time:'2/4', grid:'16th', hat:
-`;;title: Baião\n;;time: 2/4\n;;grid: 16th\n\nR: || D - • - | • - T - ||\nL: || - • - D | - • - • ||` },
-  { cat:'Brazilian', name:'Partido Alto', time:'4/4', grid:'8th', hat:
-`;;title: Partido Alto\n;;time: 4/4\n;;grid: 8th\n\nR: || •  | -  | T  | -  | D  | -  | T  | -  ||\nL: || -  | D  | -  | K  | -  | K  | -  | •  ||` },
-  { cat:'Forró', name:'Xote',            time:'4/4', grid:'8th', hat:
-`;;title: Xote\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | T  | -  | D  | -  | T  | -  ||\nL: || -  | •  | -  | •  | -  | •  | -  | K  ||` },
-  { cat:'Forró', name:'Arrasta-pé',      time:'2/4', grid:'16th', hat:
-`;;title: Arrasta-pé\n;;time: 2/4\n;;grid: 16th\n\nR: || D - • - | D - • - ||\nL: || - D - K | - D - K ||` },
-  { cat:'Forró', name:'Coco',            time:'2/4', grid:'16th', hat:
-`;;title: Coco\n;;time: 2/4\n;;grid: 16th\n\nR: || D - T - | D - • - ||\nL: || - • - • | - K - K ||` },
-  { cat:'Forró', name:'Xaxado',          time:'2/4', grid:'8th', hat:
-`;;title: Xaxado\n;;time: 2/4\n;;grid: 8th\n\nR: || D | - | D | - ||\nL: || - | K | - | K ||` },
-  { cat:'Forró', name:'Quadrilha',       time:'2/4', grid:'8th', hat:
-`;;title: Quadrilha\n;;time: 2/4\n;;grid: 8th\n\nR: || D | - | T | - ||\nL: || - | K | - | K ||` },
-  { cat:'Drum Set', name:'Rock Backbeat', time:'4/4', grid:'8th', hat:
-`;;title: Rock Backbeat\n;;time: 4/4\n;;grid: 8th\n\nR: || D  | -  | T  | -  | D  | -  | T  | -  ||\nL: || -  | •  | -  | •  | -  | •  | -  | •  ||` },
-  { cat:'Drum Set', name:'Funk',         time:'4/4', grid:'16th', hat:
-`;;title: Funk\n;;time: 4/4\n;;grid: 16th\n\nR: || D - • • | T - • D | • • D - | T - • • ||\nL: || - • K • | - • K • | - • K • | - • K • ||` },
-  { cat:'Odd Metres', name:'5/8 (3+2)',  time:'5/8', grid:'8th', hat:
-`;;title: 5/8 (3+2)\n;;time: 5/8\n;;grid: 8th\n;;subdivision: 3+2\n\nR: || D - • | T - ||\nL: || - • - | - • ||` },
-  { cat:'Odd Metres', name:'5/8 (2+3)',  time:'5/8', grid:'8th', hat:
-`;;title: 5/8 (2+3)\n;;time: 5/8\n;;grid: 8th\n;;subdivision: 2+3\n\nR: || D - | T - • ||\nL: || - • | - • - ||` },
-  { cat:'Odd Metres', name:'7/8 (3+2+2)', time:'7/8', grid:'8th', hat:
-`;;title: 7/8 (3+2+2)\n;;time: 7/8\n;;grid: 8th\n;;subdivision: 3+2+2\n\nR: || D - • | T - | T - ||\nL: || - • - | - • | - • ||` },
-  { cat:'Odd Metres', name:'7/8 (2+2+3)', time:'7/8', grid:'8th', hat:
-`;;title: 7/8 (2+2+3)\n;;time: 7/8\n;;grid: 8th\n;;subdivision: 2+2+3\n\nR: || D - | T - | D - • ||\nL: || - • | - • | - • - ||` },
-  { cat:'Odd Metres', name:'9/8 (2+2+2+3)', time:'9/8', grid:'8th', hat:
-`;;title: 9/8 (2+2+2+3)\n;;time: 9/8\n;;grid: 8th\n;;subdivision: 2+2+2+3\n\nR: || D - | T - | D - | T - • ||\nL: || - • | - • | - • | - • - ||` },
-  { cat:'Polyrhythm', name:'2 against 3', time:'6/8', grid:'8th', hat:
-`;;title: 2 against 3\n;;time: 6/8\n;;grid: 8th\n\nR: || D | • | D | • | D | • ||\nL: || D | - | - | D | - | - ||` },
-  { cat:'Polyrhythm', name:'3 against 2', time:'6/8', grid:'8th', hat:
-`;;title: 3 against 2\n;;time: 6/8\n;;grid: 8th\n\nR: || D | - | - | D | - | - ||\nL: || D | • | D | • | D | • ||` },
-  { cat:'Polyrhythm', name:'3 against 4', time:'12/8', grid:'8th', hat:
-`;;title: 3 against 4\n;;time: 12/8\n;;grid: 8th\n\nR: || D | • | • | D | • | • | D | • | • | D | • | • ||\nL: || D | - | - | - | D | - | - | - | D | - | - | - ||` },
-  { cat:'Polyrhythm', name:'4 against 3', time:'12/8', grid:'8th', hat:
-`;;title: 4 against 3\n;;time: 12/8\n;;grid: 8th\n\nR: || D | - | - | - | D | - | - | - | D | - | - | - ||\nL: || D | • | • | D | • | • | D | • | • | D | • | • ||` },
+`// HAT v1.3.4 reference — always updated to latest spec version\n;;HAT v1.3.4\n;;title: Bulería\n;;time: 12/8\n;;grid: 8th\n;;subdivision: 3+3+2+2+2\n;;tuning: D Kurd\n;;notes:    D4  F4  A4  Bb4  C5  D5  F5\n;;note-numbers: 1   2   3   4    5   6   7\n;;x-chord-1: D4 A4 D5\n;;x-chord-2: F4 C5 F5\n\nC: ||| 1   e   &   || 2   e   &   || 3   &   || 4   &   || 5   &   |||\nR: ||| c1  -   3   || T   -   6   || c2  -   || 3   -   || c1  -   |||\nL: ||| -   3   -   || -   •   -   || -   •   || -   •   || -   3   |||` },
 ];
 
 // ─────────────────────────────────────────────
@@ -839,32 +742,29 @@ let _copiedBars = null, _copiedCols = null;
 //  SIDEBAR
 // ─────────────────────────────────────────────
 
-const cats = [...new Set(PATTERNS.map(p => p.cat))];
 let activeCat = null;
 let activePatIdx = -1;
 
 function buildSidebar() {
   const catsEl = document.getElementById('cats');
-  const listEl = document.getElementById('pattern-list');
+  catsEl.innerHTML = '';
 
-  // All pill
   const allPill = document.createElement('span');
-  allPill.className = 'cat-pill active';
+  allPill.className = 'cat-pill' + (activeCat === null ? ' active' : '');
   allPill.textContent = 'All';
   allPill.onclick = () => setCat(null, allPill);
   catsEl.appendChild(allPill);
 
+  const cats = [...new Set(PATTERNS.map(p => p.cat))];
   for (const cat of cats) {
     const pill = document.createElement('span');
-    pill.className = 'cat-pill';
+    pill.className = 'cat-pill' + (activeCat === cat ? ' active' : '');
     pill.textContent = cat;
     pill.onclick = () => setCat(cat, pill);
     catsEl.appendChild(pill);
   }
 
   renderPatternList();
-
-  document.getElementById('search').addEventListener('input', renderPatternList);
 }
 
 function setCat(cat, pill) {
@@ -1273,6 +1173,24 @@ function deleteCol(sec,bar,col) {
   if (cols.length<=1) return;
   pushUndo(); cols.splice(col,1); syncSourceFromModel(); renderGrid(state.parsed);
 }
+function deleteSelectedBars() {
+  if (!state.parsed?.ok||_selBars.size===0) return;
+  // Sort descending so splice indices stay valid
+  const sorted=[..._selBars].map(k=>k.split('-').map(Number)).sort((a,b)=>b[0]-a[0]||b[1]-a[1]);
+  pushUndo();
+  for (const [si,bi] of sorted) {
+    const bars=state.parsed.sections[si].bars;
+    if (bars.length>1) bars.splice(bi,1);
+  }
+  // Remove sections that became empty (but always keep at least one section)
+  state.parsed.sections=state.parsed.sections.filter(s=>s.bars.length>0);
+  if (!state.parsed.sections.length) {
+    const empty={R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null};
+    state.parsed.sections=[{label:'',bars:[{cols:[empty]}]}];
+  }
+  _selBars=new Set();
+  syncSourceFromModel(); renderGrid(state.parsed);
+}
 function addColToBar(sec,bar) {
   pushUndo(); state.parsed.sections[sec].bars[bar].cols.push({R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null});
   syncSourceFromModel(); renderGrid(state.parsed);
@@ -1288,6 +1206,10 @@ function syncSourceFromModel() {
   if (_hovered) _hovered = {sec:_hovered.sec, bar:_hovered.bar, col:_hovered.col, hand:_hovered.hand, el:null};
   const text=serializeHAT(state.parsed.meta,state.parsed.sections);
   document.getElementById('source').value=text; state.hatText=text;
+  // Keep card-meta in sync with model (reparse() also does this but isn't called on visual edits)
+  const m=state.parsed.meta;
+  document.getElementById('card-title').textContent=m.title||'Untitled';
+  document.getElementById('card-meta').textContent=[m.time,m.grid,m.subdivision,m.tempo?m.tempo+' BPM':''].filter(Boolean).join(' · ');
   // Rebuild flat cols + coords
   const allCols=[],colCoords=[];
   for (let si=0;si<state.parsed.sections.length;si++)
@@ -1470,6 +1392,10 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if (e.ctrlKey||e.metaKey||inInput) return;
+  // Delete selected bars (works even without a hovered cell)
+  if (_selBars.size>0&&(e.key==='Delete'||e.key==='Backspace'||e.key==='x')) {
+    e.preventDefault(); deleteSelectedBars(); return;
+  }
   if (!_hovered||!state.parsed?.ok) return;
 
   const {sec,bar,col,hand}=_hovered;
@@ -1558,26 +1484,25 @@ document.getElementById('btn-add-section').onclick=()=>{
   if (label===null) return;
   pushUndo();
 
-  // Determine split point: hovered bar or first selected bar
-  let splitSec=-1, splitBar=-1;
-  if (_hovered) { splitSec=_hovered.sec; splitBar=_hovered.bar; }
-  else if (_selBars.size>0) {
-    const key=[..._selBars].sort()[0]; [splitSec,splitBar]=key.split('-').map(Number);
-  }
+  const empty=()=>({R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null});
 
-  if (splitSec>=0 && splitBar>0) {
-    // Split: bars[splitBar..] become the new section
+  // Prefer selected bar over hovered cell for split point
+  let splitSec=-1, splitBar=-1;
+  if (_selBars.size>0) {
+    const key=[..._selBars].sort()[0]; [splitSec,splitBar]=key.split('-').map(Number);
+  } else if (_hovered) { splitSec=_hovered.sec; splitBar=_hovered.bar; }
+
+  if (splitSec>=0) {
+    // Split: bars[splitBar..] → new section; original section keeps bars[0..splitBar-1]
     const sec=state.parsed.sections[splitSec];
     const newBars=sec.bars.splice(splitBar);
-    state.parsed.sections.splice(splitSec+1,0,{label:label.trim(),bars:newBars});
-  } else if (splitSec>=0 && splitBar===0) {
-    // Hovered first bar of a section: insert a new empty section before
-    const empty={R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null};
-    state.parsed.sections.splice(splitSec,0,{label:label.trim(),bars:[{cols:[empty]}]});
+    state.parsed.sections.splice(splitSec+1,0,{label:label.trim(),bars:newBars.length?newBars:[{cols:[empty()]}]});
+    // Remove now-empty original section (but always keep ≥1 section)
+    if (sec.bars.length===0) state.parsed.sections.splice(splitSec,1);
+    if (!state.parsed.sections.length) state.parsed.sections=[{label:'',bars:[{cols:[empty()]}]}];
   } else {
     // No context: append a new empty section at the end
-    const empty={R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null};
-    state.parsed.sections.push({label:label.trim(),bars:[{cols:[empty]}]});
+    state.parsed.sections.push({label:label.trim(),bars:[{cols:[empty()]}]});
   }
   syncSourceFromModel(); renderGrid(state.parsed);
 };
@@ -1738,8 +1663,30 @@ document.getElementById('tap-btn').onclick=()=>{
 //  INIT
 // ─────────────────────────────────────────────
 
+document.getElementById('search').addEventListener('input', renderPatternList);
 buildSidebar();
 loadPattern(0);
+
+(async () => {
+  try {
+    const resp = await fetch('../rhythms/index.json');
+    if (!resp.ok) return;
+    const index = await resp.json();
+    const results = await Promise.allSettled(
+      index.map(async entry => {
+        const r = await fetch(`../rhythms/${entry.file}`);
+        if (!r.ok) throw new Error();
+        const hat = await r.text();
+        return { cat: entry.cat, name: entry.name, time: entry.time, grid: entry.grid, hat };
+      })
+    );
+    let added = 0;
+    for (const result of results) {
+      if (result.status === 'fulfilled') { PATTERNS.push(result.value); added++; }
+    }
+    if (added > 0) buildSidebar();
+  } catch (e) { /* external library unavailable */ }
+})();
 </script>
 </body>
 </html>

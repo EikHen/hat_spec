@@ -1,0 +1,6 @@
+;;title: Gnawa
+;;time: 6/8
+;;grid: 8th
+
+R: || D | - | T | D | - | T ||
+L: || - | • | - | - | • | - ||

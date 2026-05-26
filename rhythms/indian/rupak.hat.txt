@@ -1,0 +1,7 @@
+;;title: Rupak
+;;time: 7/4
+;;grid: 4th
+;;subdivision: 3+2+2
+
+R: || T  | -  | •  || -  | T  || -  | T  ||
+L: || -  | K  | -  || D  | -  || D  | -  ||

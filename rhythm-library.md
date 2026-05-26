@@ -10,7 +10,7 @@ A reference library of traditional and global rhythms transcribed into Handpan A
 - Doums (`D`) freely swap hands as alternation requires
 - Ghost notes (`•`) maintain pulse on the active hand; `-` marks the resting hand
 
-All blocks are HAT v1.3.4. The `;;HAT v1.3.4` line is omitted for brevity but applies throughout.
+All files are HAT v1.3.4.
 
 **Source inspiration:** Categories drawn from the Handpan Dojo World Rhythm Library by David Kuckhermann. Patterns here are canonical/textbook versions from common pedagogy, not direct transcriptions of his specific handpan interpretations.
 
@@ -40,113 +40,49 @@ All blocks are HAT v1.3.4. The `;;HAT v1.3.4` line is omitted for brevity but ap
 
 The most iconic Arabic dance rhythm. Pattern: D T - T D - T -.
 
-```
-;;title: Maqsoum
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || •  - || D  - || T  - |||
-L: ||| -  K || -  K || -  • || -  • |||
-```
+[→ arabic/maqsoum.hat.txt](rhythms/arabic/maqsoum.hat.txt)
 
 ### Belledi / Masmoudi Saghir (4/4)
 
 Heavier-feeling cousin of Maqsoum with two opening doums. Pattern: D D - T D - T -.
 
-```
-;;title: Belledi
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || •  - || D  - || T  - |||
-L: ||| -  D || -  K || -  • || -  • |||
-```
+[→ arabic/belledi.hat.txt](rhythms/arabic/belledi.hat.txt)
 
 ### Saidi (4/4)
 
 Sister rhythm to Maqsoum and Belledi. Pattern: D - T D D - T -. The double doum across beats 2&-3 gives it bounce.
 
-```
-;;title: Saidi
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || T  - || D  - || T  - |||
-L: ||| -  • || -  D || -  • || -  • |||
-```
+[→ arabic/saidi.hat.txt](rhythms/arabic/saidi.hat.txt)
 
 ### Malfuf (2/4)
 
 A 3+3+2 sixteenth-note pattern found around the world. Pattern: D - - T - - T -.
 
-```
-;;title: Malfuf
-;;time: 2/4
-;;grid: 16th
-
-C: ||| 1  e  &  a || 2  e  &  a |||
-R: ||| D  -  •  - || •  -  T  - |||
-L: ||| -  •  -  K || -  •  -  • |||
-```
+[→ arabic/malfuf.hat.txt](rhythms/arabic/malfuf.hat.txt)
 
 ### Khaligi (2/4)
 
 Like Malfuf but with two doums for extra weight. Pattern: D - - D - - T -.
 
-```
-;;title: Khaligi
-;;time: 2/4
-;;grid: 16th
-
-C: ||| 1  e  &  a || 2  e  &  a |||
-R: ||| D  -  •  - || •  -  T  - |||
-L: ||| -  •  -  D || -  •  -  • |||
-```
+[→ arabic/khaligi.hat.txt](rhythms/arabic/khaligi.hat.txt)
 
 ### Ayoub (2/4)
 
 A short, bouncy Sufi rhythm. Pattern: D - T D. The second doum forces a hand swap — see HAT spec Example C.
 
-```
-;;title: Ayoub
-;;time: 2/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & |||
-R: ||| D  - || T  - |||
-L: ||| -  • || -  D |||
-```
+[→ arabic/ayoub.hat.txt](rhythms/arabic/ayoub.hat.txt)
 
 ### Wahda (4/4)
 
 "One" — defined by a single doum on beat 1. Played here as a halftime Malfuf shape.
 
-```
-;;title: Wahda
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || •  - || •  - || T  - |||
-L: ||| -  • || -  K || -  • || -  • |||
-```
+[→ arabic/wahda.hat.txt](rhythms/arabic/wahda.hat.txt)
 
 ### Sombati / Chiftetelli (4/4)
 
 Doubletime Chiftetelli without the double doum. Son-clave-adjacent, with accent on beat 4 instead of beat 4&. Pattern: D - T - - T D -.
 
-```
-;;title: Sombati
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || T  - || •  - || D  - |||
-L: ||| -  • || -  • || -  K || -  • |||
-```
+[→ arabic/sombati.hat.txt](rhythms/arabic/sombati.hat.txt)
 
 ---
 
@@ -156,30 +92,13 @@ L: ||| -  • || -  • || -  K || -  • |||
 
 A common Persian 6/8 dance feel. Two felt beats per bar with doums anchoring each. Pattern: D - T D - T.
 
-```
-;;title: Reng
-;;time: 6/8
-;;grid: 8th
-
-C: ||| 1  e  & || 2  e  & |||
-R: ||| D  -  T || -  •  - |||
-L: ||| -  •  - || D  -  K |||
-```
+[→ persian/reng.hat.txt](rhythms/persian/reng.hat.txt)
 
 ### Persian 7/8 (3+2+2)
 
 Common in Persian dance music. Three-then-two-then-two grouping.
 
-```
-;;title: Persian 7/8
-;;time: 7/8
-;;grid: 8th
-;;subdivision: 3+2+2
-
-C: ||| 1  e  & || 2  & || 3  & |||
-R: ||| D  -  • || T  - || T  - |||
-L: ||| -  •  - || -  • || -  • |||
-```
+[→ persian/persian-7-8.hat.txt](rhythms/persian/persian-7-8.hat.txt)
 
 ---
 
@@ -189,45 +108,19 @@ L: ||| -  •  - || -  • || -  • |||
 
 Greek "butcher's dance" rhythm. Steady, danceable, often paired with Rebetiko songs. Pattern: D - T - D - T -.
 
-```
-;;title: Hasapiko
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || T  - || D  - || T  - |||
-L: ||| -  • || -  • || -  • || -  • |||
-```
+[→ greek/hasapiko.hat.txt](rhythms/greek/hasapiko.hat.txt)
 
 ### Kalamatianos (7/8)
 
 Greek folk dance in 7/8, grouped 3+2+2. The slow beat carries the doum, the two quick beats carry the taks.
 
-```
-;;title: Kalamatianos
-;;time: 7/8
-;;grid: 8th
-;;subdivision: 3+2+2
-
-C: ||| 1  e  & || 2  & || 3  & |||
-R: ||| D  -  • || T  - || T  - |||
-L: ||| -  •  - || -  • || -  • |||
-```
+[→ greek/kalamatianos.hat.txt](rhythms/greek/kalamatianos.hat.txt)
 
 ### Zeybekiko (9/8)
 
 Greek dance in 9/8, grouped 2+2+2+3 (the long beat at the end). Stately, often played slow.
 
-```
-;;title: Zeybekiko
-;;time: 9/8
-;;grid: 8th
-;;subdivision: 2+2+2+3
-
-C: ||| 1  & || 2  & || 3  & || 4  e  & |||
-R: ||| D  - || T  - || D  - || T  -  • |||
-L: ||| -  • || -  • || -  • || -  •  - |||
-```
+[→ greek/zeybekiko.hat.txt](rhythms/greek/zeybekiko.hat.txt)
 
 ---
 
@@ -237,44 +130,19 @@ L: ||| -  • || -  • || -  • || -  •  - |||
 
 Pop-influenced flamenco rhythm, related to Cuban rumba but distinct. Pattern: D - T - D T - T.
 
-```
-;;title: Rumba Flamenca
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || T  - || D  - || •  - |||
-L: ||| -  • || -  • || -  K || -  K |||
-```
+[→ flamenco/rumba-flamenca.hat.txt](rhythms/flamenco/rumba-flamenca.hat.txt)
 
 ### Tangos Flamencos (4/4)
 
 Not the Argentinian tango — a different flamenco form. Strong accent on beat 2 like a backbeat. Pattern: - T D T - T D T (rest-accent-doum pulse).
 
-```
-;;title: Tangos Flamencos
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| •  - || D  - || •  - || D  - |||
-L: ||| -  K || -  K || -  K || -  K |||
-```
+[→ flamenco/tangos-flamencos.hat.txt](rhythms/flamenco/tangos-flamencos.hat.txt)
 
 ### Bulería (12/8)
 
 Cornerstone flamenco rhythm in 12 counts, with characteristic accents on 12, 3, 6/7, 8, 10. Twelve 8th notes; grouping varies but commonly felt as 6+6 or 3+3+2+2+2.
 
-```
-;;title: Bulería
-;;time: 12/8
-;;grid: 8th
-;;subdivision: 3+3+2+2+2
-
-C: ||| 1  e  & || 2  e  & || 3  & || 4  & || 5  & |||
-R: ||| D  -  • || T  -  • || D  - || T  - || D  - |||
-L: ||| -  •  - || -  •  - || -  • || -  • || -  • |||
-```
+[→ flamenco/buleria.hat.txt](rhythms/flamenco/buleria.hat.txt)
 
 ---
 
@@ -284,61 +152,25 @@ L: ||| -  •  - || -  •  - || -  • || -  • || -  • |||
 
 The most common tala in Hindustani classical music. 16 beats grouped 4+4+4+4. The 9th beat (khali) is "empty" — traditionally marked by a wave instead of a clap.
 
-```
-;;title: Teentaal
-;;time: 16/4
-;;grid: 4th
-;;subdivision: 4+4+4+4
-
-C: ||| 1 || 2 || 3 || 4 ||| 5 || 6 || 7 || 8 ||| 9 || 10 || 11 || 12 ||| 13 || 14 || 15 || 16 |||
-R: ||| D || T || T || D ||| D || T || T || D ||| •  || T  || T  || D  ||| D  || T  || T  || D  |||
-L: ||| - || • || • || - ||| -  || • || • || - ||| -  || •  || •  || -  ||| -   || •  || •  || -  |||
-```
+[→ indian/teentaal.hat.txt](rhythms/indian/teentaal.hat.txt)
 
 ### Keherwa (8-beat)
 
 Common 8-beat tala used in semi-classical and folk music. Two halves of 4 beats each; the second half is the "answer." Base bol pattern: Dha Dhin Na Na | Dha Dhin Dhin Na → D K _ _ | D K T _.
 
-```
-;;title: Keherwa
-;;time: 8/4
-;;grid: 4th
-;;subdivision: 4+4
-
-C: ||| 1 || 2 || 3 || 4 ||| 5 || 6 || 7 || 8 |||
-R: ||| D || - || • || - ||| D || - || T || - |||
-L: ||| - || K || - || • ||| - || K || - || • |||
-```
+[→ indian/keherwa.hat.txt](rhythms/indian/keherwa.hat.txt)
 
 ### Dadra (6-beat)
 
 A 6-beat tala used in light classical, folk, and devotional music. Grouped 3+3. Base bol pattern: Dha Dhin Na | Dha Tin Na → D K _ | D T _. The second group (khali) has D on the left hand.
 
-```
-;;title: Dadra
-;;time: 6/4
-;;grid: 4th
-;;subdivision: 3+3
-
-C: ||| 1 || 2 || 3 ||| 4 || 5 || 6 |||
-R: ||| D || - || • ||| - || T || - |||
-L: ||| - || K || - ||| D || - || • |||
-```
+[→ indian/dadra.hat.txt](rhythms/indian/dadra.hat.txt)
 
 ### Rupak (7-beat)
 
 7-beat tala grouped 3+2+2. Uniquely, it starts on the khali (empty) beat — giving it a distinctive forward-leaning pull. Base bol pattern: Tin Tin Na | Dha Dhin | Dha Dhin → T K _ | D T | D T.
 
-```
-;;title: Rupak
-;;time: 7/4
-;;grid: 4th
-;;subdivision: 3+2+2
-
-C: ||| 1  2  3 || 4  5 || 6  7 |||
-R: ||| T  -  • || -  T || -  T |||
-L: ||| -  K  - || D  - || D  - |||
-```
+[→ indian/rupak.hat.txt](rhythms/indian/rupak.hat.txt)
 
 ---
 
@@ -348,29 +180,13 @@ L: ||| -  K  - || D  - || D  - |||
 
 The fundamental 6/8 djembe groove. Two felt beats per bar with each broken into three. Pattern: D _ T D _ T.
 
-```
-;;title: West African 6/8
-;;time: 6/8
-;;grid: 8th
-
-C: ||| 1  e  & || 2  e  & |||
-R: ||| D  -  T || -  •  - |||
-L: ||| -  •  - || D  -  K |||
-```
+[→ african/west-african-6-8.hat.txt](rhythms/african/west-african-6-8.hat.txt)
 
 ### Kuku (4/4)
 
 A celebratory dance rhythm from the forest region of Guinea. Simplified base pattern. Originally polyrhythmic across multiple drums; this is a single-line handpan reduction.
 
-```
-;;title: Kuku
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || T  - || D  - || T  - |||
-L: ||| -  K || -  • || -  K || -  • |||
-```
+[→ african/kuku.hat.txt](rhythms/african/kuku.hat.txt)
 
 ---
 
@@ -380,29 +196,13 @@ L: ||| -  K || -  • || -  K || -  • |||
 
 Sufi-trance music from Morocco, traditionally played on guembri (3-string bass lute) and qraqab (iron castanets). Driving 6/8 with strong downbeats.
 
-```
-;;title: Gnawa
-;;time: 6/8
-;;grid: 8th
-
-C: ||| 1  e  & || 2  e  & |||
-R: ||| D  -  T || D  -  T |||
-L: ||| -  •  - || -  •  - |||
-```
+[→ african/gnawa.hat.txt](rhythms/african/gnawa.hat.txt)
 
 ### Chaabi (4/4)
 
 Moroccan popular folk rhythm. Often felt with a swung 16th-note shuffle, simplified here.
 
-```
-;;title: Chaabi
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || T  - || D  T || T  - |||
-L: ||| -  K || -  K || -  - || -  K |||
-```
+[→ african/chaabi.hat.txt](rhythms/african/chaabi.hat.txt)
 
 ---
 
@@ -412,57 +212,25 @@ L: ||| -  K || -  K || -  - || -  K |||
 
 The foundational clave of Cuban music. Five hits over two bars of 4/4. The "3 side" comes first (three hits), then the "2 side" (two hits).
 
-```
-;;title: Son Clave 3-2
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || •  - || •  - || D  - ||| •  - || T  - || T  - || •  - |||
-L: ||| -  • || -  D || -  • || -  • ||| -  • || -  • || -  • || -  • |||
-```
+[→ afro-cuban/son-clave-3-2.hat.txt](rhythms/afro-cuban/son-clave-3-2.hat.txt)
 
 ### Rumba Clave 3-2 (4/4, 2 bars)
 
 The clave for Cuban rumba styles. Differs from son clave by shifting the third hit of the "3 side" one 8th note later (to beat 4& instead of beat 4).
 
-```
-;;title: Rumba Clave 3-2
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || •  - || •  - || •  - ||| D  - || T  - || T  - || •  - |||
-L: ||| -  • || -  D || -  • || -  D ||| -  • || -  • || -  • || -  • |||
-```
+[→ afro-cuban/rumba-clave-3-2.hat.txt](rhythms/afro-cuban/rumba-clave-3-2.hat.txt)
 
 ### Bembé / 6/8 Standard Pattern
 
 The "Standard Pattern" of African and Afro-Caribbean music — the most widespread bell pattern in the world. Hits on positions 1, 3, 5, 6, 8, 10, 12 (7 of 12).
 
-```
-;;title: Bembé
-;;time: 12/8
-;;grid: 8th
-
-C: ||| 1  e  & || 2  e  & ||| 1  e  & || 2  e  & |||
-R: ||| D  -  T || -  T  - ||| •  -  • || -  •  - |||
-L: ||| -  •  - || •  -  D ||| -  K  - || K  -  K |||
-```
+[→ afro-cuban/bembe.hat.txt](rhythms/afro-cuban/bembe.hat.txt)
 
 ### Tumbao (4/4)
 
 The bass-pattern foundation of Cuban son and salsa. Anticipates beat 1 from beat 4& of the previous bar.
 
-```
-;;title: Tumbao
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| •  - || T  - || D  - || •  - |||
-L: ||| -  • || -  K || -  • || -  D |||
-```
+[→ afro-cuban/tumbao.hat.txt](rhythms/afro-cuban/tumbao.hat.txt)
 
 ---
 
@@ -472,57 +240,25 @@ L: ||| -  • || -  K || -  • || -  D |||
 
 The heartbeat of Brazilian carnival. Surdo doum on beat 2; offbeat taks throughout. Notated here with the characteristic syncopation in 16ths.
 
-```
-;;title: Samba
-;;time: 2/4
-;;grid: 16th
-
-C: ||| 1  e  &  a || 2  e  &  a |||
-R: ||| D  -  T  - || •  -  D  - |||
-L: ||| -  •  -  • || -  K  -  K |||
-```
+[→ brazilian/samba.hat.txt](rhythms/brazilian/samba.hat.txt)
 
 ### Bossa Nova (4/4)
 
 Cool, syncopated 4/4 derived from Samba. The "Brazilian clave" (a 3-2 style pattern with slightly different placement than Cuban clave).
 
-```
-;;title: Bossa Nova
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || •  - || T  - || •  - |||
-L: ||| -  • || -  K || -  • || -  K |||
-```
+[→ brazilian/bossa-nova.hat.txt](rhythms/brazilian/bossa-nova.hat.txt)
 
 ### Baião (2/4)
 
 The foundational rhythm of Forró music from Northeastern Brazil. Structurally identical to the Arabic Khaligi (3+3+2 family), with two doums and a closing tak: D - - D - - T -.
 
-```
-;;title: Baião
-;;time: 2/4
-;;grid: 16th
-
-C: ||| 1  e  &  a || 2  e  &  a |||
-R: ||| D  -  •  - || •  -  T  - |||
-L: ||| -  •  -  D || -  •  -  • |||
-```
+[→ brazilian/baiao.hat.txt](rhythms/brazilian/baiao.hat.txt)
 
 ### Partido Alto (4/4)
 
 A samba subgenre with a distinctive 2-bar syncopated pattern. Bossa-adjacent but with stronger accents.
 
-```
-;;title: Partido Alto
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| •  - || T  - || D  - || T  - |||
-L: ||| -  D || -  K || -  K || -  • |||
-```
+[→ brazilian/partido-alto.hat.txt](rhythms/brazilian/partido-alto.hat.txt)
 
 ---
 
@@ -536,71 +272,31 @@ These are simplified base patterns; regional, stylistic, and performer-specific 
 
 The slower, more lyrical Forró rhythm. Roots in European polka and schottische, brought to the Northeast in the 19th century. Used for flowing, embraced couple dancing — the "slow song" of Forró. Characterized by a "bum tchá bum-bum tchá" pulse with a syncopated pickup leading back to the downbeat.
 
-```
-;;title: Xote
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || T  - || D  - || T  - |||
-L: ||| -  • || -  • || -  • || -  K |||
-```
+[→ forro/xote.hat.txt](rhythms/forro/xote.hat.txt)
 
 ### Arrasta-pé (2/4)
 
 "Dragging the feet" — fast, energetic Forró rhythm, often played at the climax of a Forró set or at June festivals (Festa Junina). The zabumba plays a busy, galloping pattern with doubled doums: D D - T D D - T.
 
-```
-;;title: Arrasta-pé
-;;time: 2/4
-;;grid: 16th
-
-C: ||| 1  e  &  a || 2  e  &  a |||
-R: ||| D  -  •  - || D  -  •  - |||
-L: ||| -  D  -  K || -  D  -  K |||
-```
+[→ forro/arrasta-pe.hat.txt](rhythms/forro/arrasta-pe.hat.txt)
 
 ### Coco (2/4)
 
 A rhythm and dance from the coastal Northeast (Pernambuco, Alagoas), closely related to Baião. Often performed with call-and-response vocals and clapping, sometimes without melodic instruments. Shares the 3+3+2 family feel but with a more syncopated, danceable accent pattern.
 
-```
-;;title: Coco
-;;time: 2/4
-;;grid: 16th
-
-C: ||| 1  e  &  a || 2  e  &  a |||
-R: ||| D  -  T  - || D  -  •  - |||
-L: ||| -  •  -  • || -  K  -  K |||
-```
+[→ forro/coco.hat.txt](rhythms/forro/coco.hat.txt)
 
 ### Xaxado (2/4)
 
 The dance and rhythm of the cangaceiros — armed bandits of the Brazilian Northeast in the early 20th century. Named for the *xa-xa* shuffling sound of leather sandals on dry ground. Simple, marching duple pulse, traditionally danced in a line with rifles tapped against the floor in place of formal percussion.
 
-```
-;;title: Xaxado
-;;time: 2/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & |||
-R: ||| D  - || D  - |||
-L: ||| -  K || -  K |||
-```
+[→ forro/xaxado.hat.txt](rhythms/forro/xaxado.hat.txt)
 
 ### Quadrilha (2/4)
 
 Brazilian adaptation of the European *quadrille* — a square dance rhythm. Central to Festa Junina (June Festival) celebrations, danced in formation with a caller giving instructions. Straight, march-like, easy to follow.
 
-```
-;;title: Quadrilha
-;;time: 2/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & |||
-R: ||| D  - || T  - |||
-L: ||| -  K || -  K |||
-```
+[→ forro/quadrilha.hat.txt](rhythms/forro/quadrilha.hat.txt)
 
 ---
 
@@ -610,29 +306,13 @@ L: ||| -  K || -  K |||
 
 The defining groove of popular music. Kick (D) on 1 and 3; snare (T) on 2 and 4. Hi-hat (ghosts) fills the 8th-note grid.
 
-```
-;;title: Rock Backbeat
-;;time: 4/4
-;;grid: 8th
-
-C: ||| 1  & || 2  & || 3  & || 4  & |||
-R: ||| D  - || T  - || D  - || T  - |||
-L: ||| -  • || -  • || -  • || -  • |||
-```
+[→ drum-set/rock-backbeat.hat.txt](rhythms/drum-set/rock-backbeat.hat.txt)
 
 ### Funk (4/4)
 
 Syncopated kick patterns plus the standard backbeat. Anticipated kick on 3& is the signature.
 
-```
-;;title: Funk
-;;time: 4/4
-;;grid: 16th
-
-C: ||| 1  e  &  a || 2  e  &  a || 3  e  &  a || 4  e  &  a |||
-R: ||| D  -  •  • || T  -  •  D || •  •  D  - || T  -  •  • |||
-L: ||| -  •  K  • || -  •  K  • || -  •  K  • || -  •  K  • |||
-```
+[→ drum-set/funk.hat.txt](rhythms/drum-set/funk.hat.txt)
 
 ---
 
@@ -642,76 +322,31 @@ L: ||| -  •  K  • || -  •  K  • || -  •  K  • || -  •  K  • |||
 
 Quick-quick-quick / quick-quick. Long beat first.
 
-```
-;;title: 5/8 (3+2)
-;;time: 5/8
-;;grid: 8th
-;;subdivision: 3+2
-
-C: ||| 1  e  & || 2  & |||
-R: ||| D  -  • || T  - |||
-L: ||| -  •  - || -  • |||
-```
+[→ odd-metres/5-8-3plus2.hat.txt](rhythms/odd-metres/5-8-3plus2.hat.txt)
 
 ### 5/8 (2+3)
 
 Quick-quick / quick-quick-quick. Long beat second.
 
-```
-;;title: 5/8 (2+3)
-;;time: 5/8
-;;grid: 8th
-;;subdivision: 2+3
-
-C: ||| 1  & || 2  e  & |||
-R: ||| D  - || T  -  • |||
-L: ||| -  • || -  •  - |||
-```
+[→ odd-metres/5-8-2plus3.hat.txt](rhythms/odd-metres/5-8-2plus3.hat.txt)
 
 ### 7/8 (3+2+2)
 
 The most common 7/8 grouping. Long-short-short.
 
-```
-;;title: 7/8 (3+2+2)
-;;time: 7/8
-;;grid: 8th
-;;subdivision: 3+2+2
-
-C: ||| 1  e  & || 2  & || 3  & |||
-R: ||| D  -  • || T  - || T  - |||
-L: ||| -  •  - || -  • || -  • |||
-```
+[→ odd-metres/7-8-3plus2plus2.hat.txt](rhythms/odd-metres/7-8-3plus2plus2.hat.txt)
 
 ### 7/8 (2+2+3)
 
 Short-short-long. Common in Bulgarian and Macedonian folk.
 
-```
-;;title: 7/8 (2+2+3)
-;;time: 7/8
-;;grid: 8th
-;;subdivision: 2+2+3
-
-C: ||| 1  & || 2  & || 3  e  & |||
-R: ||| D  - || T  - || D  -  • |||
-L: ||| -  • || -  • || -  •  - |||
-```
+[→ odd-metres/7-8-2plus2plus3.hat.txt](rhythms/odd-metres/7-8-2plus2plus3.hat.txt)
 
 ### 9/8 (2+2+2+3)
 
 Karsilama / Turkish 9/8. Three short groups then a long.
 
-```
-;;title: 9/8 (2+2+2+3)
-;;time: 9/8
-;;grid: 8th
-;;subdivision: 2+2+2+3
-
-C: ||| 1  & || 2  & || 3  & || 4  e  & |||
-R: ||| D  - || T  - || D  - || T  -  • |||
-L: ||| -  • || -  • || -  • || -  •  - |||
-```
+[→ odd-metres/9-8-2plus2plus2plus3.hat.txt](rhythms/odd-metres/9-8-2plus2plus2plus3.hat.txt)
 
 ---
 
@@ -721,63 +356,27 @@ These rhythms relax Default 1 (one hand per cell) to allow simultaneous strikes.
 
 ### 2 against 3
 
-Two hits in the L hand against three in the R hand over the same time span. The most common polyrhythm in West African and Cuban music.
+Two hits in the L hand against three in the R hand over the same time span. The most common polyrhythm in West African and Cuban music. R plays even triplets (3 hits). L plays even duplets (2 hits). Both coincide on cell 1.
 
-```
-;;title: 2 against 3
-;;time: 6/8
-;;grid: 8th
-
-C: ||| 1  e  & || 2  e  & |||
-R: ||| D  •  D || •  D  • |||
-L: ||| D  -  - || D  -  - |||
-```
-
-R plays even triplets (3 hits). L plays even duplets (2 hits). Both coincide on cell 1.
+[→ polyrhythm/2-against-3.hat.txt](rhythms/polyrhythm/2-against-3.hat.txt)
 
 ### 3 against 2
 
 Same polyrhythm, hands swapped — three hits in L against two in R. Just a different perspective on the same interlock.
 
-```
-;;title: 3 against 2
-;;time: 6/8
-;;grid: 8th
-
-C: ||| 1  e  & || 2  e  & |||
-R: ||| D  -  - || D  -  - |||
-L: ||| D  •  D || •  D  • |||
-```
+[→ polyrhythm/3-against-2.hat.txt](rhythms/polyrhythm/3-against-2.hat.txt)
 
 ### 3 against 4
 
-Three hits in L against four in R over 12 cells. They coincide only on cell 1.
+Three hits in L against four in R over 12 cells. They coincide only on cell 1. R plays even quarter notes (4 hits). L plays even dotted-quarter notes (3 hits).
 
-```
-;;title: 3 against 4
-;;time: 12/8
-;;grid: 8th
-
-C: ||| 1  e  & || 2  e  & || 3  e  & || 4  e  & |||
-R: ||| D  •  • || D  •  • || D  •  • || D  •  • |||
-L: ||| D  -  - || -  D  - || -  -  D || -  -  - |||
-```
-
-R plays even quarter notes (4 hits). L plays even dotted-quarter notes (3 hits).
+[→ polyrhythm/3-against-4.hat.txt](rhythms/polyrhythm/3-against-4.hat.txt)
 
 ### 4 against 3
 
 Hands swapped from 3-against-4 — four hits in L against three in R.
 
-```
-;;title: 4 against 3
-;;time: 12/8
-;;grid: 8th
-
-C: ||| 1  e  & || 2  e  & || 3  e  & || 4  e  & |||
-R: ||| D  -  - || -  D  - || -  -  D || -  -  - |||
-L: ||| D  •  • || D  •  • || D  •  • || D  •  • |||
-```
+[→ polyrhythm/4-against-3.hat.txt](rhythms/polyrhythm/4-against-3.hat.txt)
 
 ---
 
