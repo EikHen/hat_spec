@@ -1,4 +1,4 @@
-# HAT — Handpan ASCII Tab v1.3.3
+# HAT — Handpan ASCII Tab v1.3.4
 
 A plain-text notation system for handpan rhythms. Human-readable in monospace fonts, trivially machine-parseable.
 
@@ -12,6 +12,7 @@ A plain-text notation system for handpan rhythms. Human-readable in monospace fo
 | v1.3.1 | `triplet-4th` grid; `;;x-*:` extension namespace; `t`/`k` muted-tak symbols; compound-meter clarification; `%% %%` block comments; subdivision mismatch is now a hard parse error |
 | v1.3.2 | `;;notes:` + `;;note-numbers:` fields; numeric note aliases in tablature (1–3 digit numbers) |
 | v1.3.3 | `;;fields:` removed — superseded by `;;notes:` |
+| v1.3.4 | Separator hierarchy redesigned: `\|` visual-only, `\|\|` beat boundary, `\|\|\|` bar boundary; formal BPM definition via beat groups; optional `C:` subdivision-count line |
 
 ---
 
@@ -21,24 +22,26 @@ A HAT document has three layers, all optional except the version line:
 
 1. **File header** — `;;` metadata lines.
 2. **Section labels** — `[name]` or `[name xN]` lines grouping stanzas.
-3. **Stanzas** — `R:` / `L:` line pairs containing the rhythm.
+3. **Stanzas** — optional `C:` count line followed by mandatory `R:` / `L:` line pairs.
 
 ```
-;;HAT v1.3.3
+;;HAT v1.3.4
 ;;title: Groove in D Kurd
-;;tempo: 92
+;;tempo: 120
 ;;time: 4/4
 ;;grid: 8th
 ;;tuning: D Kurd
 ;;notes: D4 E4 F#4 A4 B4 D5 E5 F#5
 
 [intro]
-R: || D   | -   | •   | -   | D   | -   | T   | -   ||
-L: || -   | K   | -   | K   | -   | •   | -   | •   ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || D  - || T  - |||
+L: ||| -  K || -  K || -  • || -  • |||
 
-[verse x2]                        % plays twice
-R: || F#4 | -   | A4  | -   | B4  | -   | D5  | -   ||
-L: || -   | K   | -   | K   | -   | K   | -   | K   ||
+[melody]
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| F#4 - || A4  - || B4  - || D5  - |||
+L: ||| -  K  || -  K  || -  K  || -  K  |||
 ```
 
 ---
@@ -78,7 +81,7 @@ One modifier per cell, written immediately after the hit symbol.
 
 ### Cell formats
 
-In **Style A** (aligned, with `|`), every cell is exactly **3 characters**. In **Style B** (compact, no `|`), cells are whitespace-separated with no fixed width.
+In **Style A** (aligned), every cell is exactly **3 characters**, separated by whitespace within beat groups. In **Style B** (compact), cells are whitespace-separated with no fixed width.
 
 | Content | Style A | Style B |
 |---|---|---|
@@ -94,7 +97,6 @@ In **Style A** (aligned, with `|`), every cell is exactly **3 characters**. In *
 | Note number (1-digit) | `0  ` | `0` |
 | Note number (2-digit) | `12 ` | `12` |
 | Note number (3-digit) | `100` | `100` |
-| Note number + flam | _(Style B only)_ | `0*` |
 
 ### Note names
 
@@ -104,55 +106,105 @@ Format: `[A–G][#\|b]?[0–9]` — pitch class, optional accidental, octave dig
 
 **Disambiguation:** `D` alone (no digit or accidental following) = Doum. `D` followed by `#`, `b`, or a digit = the note D.
 
-Natural notes (`D4`, `A4`) require one trailing space in Style A to fill 3 characters. Sharps and flats (`C#3`, `Bb5`) are exactly 3 characters. Notes cannot carry a modifier in Style A (3 chars are fully consumed); use Style B for note+modifier (`F#4*`).
-
 ### Separators
 
-| Token | Meaning |
+| Token | Role |
 |---|---|
-| `\|\|` | Bar boundary (mandatory) |
-| `\|` | Subdivision boundary (optional, Style A only) |
-| whitespace | Cell separator (Style B) |
+| `\|\|\|` | **Bar boundary** — mandatory at the start and end of each bar; separates bars on a single line |
+| `\|\|` | **Beat boundary** — separates beats within a bar; defines the BPM unit (see §4) |
+| `\|` | **Visual sub-group** — optional, carries no formal constraint; useful to mark sub-beat groupings that align with the `C:` count line |
+| whitespace | Cell separator within a beat group |
 
-### Subdivision minimalism
+The hierarchy is strict: `|||` > `||` > `|` > whitespace. A `||` token is always a beat boundary, never accidentally a bar boundary; `|||` is always a bar boundary.
 
-Place `|` only at musically meaningful boundaries. Use the coarsest grouping that preserves the felt phrasing:
+### Count line — `C:`
 
-| Context | Recommended | Avoid |
+An optional `C:` line immediately above an `R:` / `L:` stanza labels each grid cell with its rhythmic position. Valid `C:` tokens are:
+
+- Positive integers with no leading zeros (e.g. `1`, `2`, `12`)
+- The symbols `e`, `&`, and `a`
+
+The `C:` line must use the same `|||` / `||` structure as the accompanying `R:` / `L:` lines. The token count per beat (between `||` markers) must equal the R/L cell count for that beat. `|` sub-group markers are optional in `C:` lines.
+
+**Recommended count syllables:**
+
+| Grid / meter | Beat count syllables |
+|---|---|
+| 8th notes, simple meter | `1 &` (2 per beat) |
+| 16th notes, simple meter | `1 e & a` (4 per beat) |
+| 8th notes, compound (dotted-quarter beat) | `1 e &` or `1 & a` (3 per beat) |
+| 4th notes, any meter | `1` (1 per beat — use `||` between every cell) |
+| Asymmetric beat of 3 | `1 e &` or `1 & a` |
+| Asymmetric beat of 2 | `1 &` |
+
+---
+
+## 4. Beats and tempo
+
+### Beat definition
+
+A **beat** is the rhythmic unit spanned by one `||` group (cells between two consecutive `||` markers within a bar, or between the opening `|||` and the first `||`, or between the last `||` and the closing `|||`).
+
+`;;tempo: X` specifies **X beats per minute**, where one beat = one `||` group.
+
+### Relationship to grid
+
+The cell duration (`;;grid:`) combined with the cells-per-beat count determines the actual note value of one beat:
+
+| Grid | Cells per beat | Beat note value |
 |---|---|---|
-| 4/4 in 8ths | No `\|`, or one at the halfway point | `\|` between every cell |
-| 7/8 (3+2+2) | `\|` after cells 3 and 5 | `\|` after every cell |
-| 3+3+2 in 16ths | `\|` after cells 3 and 6 | `\|` at halfway |
+| `8th` | 2 | quarter note (♩) |
+| `8th` | 3 | dotted quarter (♩.) |
+| `16th` | 4 | quarter note (♩) |
+| `16th` | 2 | eighth note (♪) |
+| `4th` | 1 | quarter note (♩) |
+| `4th` | 2 | half note (𝅗𝅥) |
+
+This makes `;;tempo:` unambiguous regardless of grid resolution: a pattern in `8th` grid with `||` every 2 cells and one in `16th` grid with `||` every 4 cells both express ♩ = tempo.
+
+### Asymmetric meters
+
+In asymmetric patterns (e.g. 7/8 with 3+2+2 beat grouping), beat groups may differ in length. `||` marks the felt beat pulse; BPM refers to the rate of those felt beats. Performers feel 3 beats per bar in 7/8 (3+2+2), even though the first beat is longer than the others.
+
+For quarter-note grids in asymmetric compound cycles (e.g. Rupak 7/4 in 3+2+2), the `||` groups represent the phrase-level beats (3, 2, 2 quarter notes) and BPM = phrase-beats per minute.
 
 ---
 
-## 4. Layout
+## 5. Layout
 
-Body lines come in `R:` / `L:` pairs. Cells must align vertically between the two lines.
+Body lines come in stanzas. Each stanza consists of an optional `C:` line followed by mandatory `R:` and `L:` lines:
 
 ```
-R: || X   | X   | X   | X   ||
-L: || X   | X   | X   | X   ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| X  X || X  X || X  X || X  X |||
+L: ||| X  X || X  X || X  X || X  X |||
 ```
 
-Multiple stanza pairs may appear within one section to break long patterns across lines.
+Multiple stanza pairs may appear within one section to break long patterns across lines. Multi-bar patterns may be written on a single R/L/C line with `|||` separating bars:
+
+```
+C: ||| 1  & || 2  & ||| 1  & || 2  & |||
+R: ||| D  - || T  - ||| D  - || T  - |||
+L: ||| -  K || -  K ||| -  K || -  K |||
+```
 
 ---
 
-## 5. Header keys
+## 6. Header keys
 
 | Key | Meaning |
 |---|---|
-| `HAT v1.3.3` | Version declaration — must be the first `;;` line |
+| `HAT v1.3.4` | Version declaration — must be the first `;;` line |
 | `title:` | Pattern or song name |
-| `tempo:` | Beats per minute |
+| `tempo:` | Beats (`\|\|` groups) per minute |
 | `time:` | Time signature, e.g. `4/4`, `7/8`, `12/8` |
 | `grid:` | Cell duration — see grid table below |
+| `subdivision:` | Beat grouping for asymmetric meters, e.g. `3+2+2` |
 | `tuning:` | Handpan tuning, e.g. `D Kurd` |
-| `notes:` | Available note names, space-separated ascending pitch, e.g. `D4 E4 F#4 A4 B4` — also required when `note-numbers:` is used (see §5.1) |
-| `note-numbers:` | Numbers aliasing each note in `notes:`, same order, 1–3 digits each (see §5.1) |
+| `notes:` | Available note names, space-separated, e.g. `D4 E4 F#4 A4 B4` |
+| `note-numbers:` | Numbers aliasing each note in `notes:`, same order (see §6.1) |
 | `legend:` | Freeform symbol legend |
-| `x-*:` | Private extension — any key starting with `x-` (see below) |
+| `x-*:` | Private extension — any key starting with `x-` |
 
 ### Grid values
 
@@ -170,60 +222,23 @@ Multiple stanza pairs may appear within one section to break long patterns acros
 
 ### Extension namespace `;;x-*:`
 
-Any `;;` key beginning with `x-` is a private extension. Parsers must silently preserve its value in the metadata dict but must not act on it. Example:
+Any `;;` key beginning with `x-` is a private extension. Parsers must silently preserve its value in the metadata dict but must not act on it.
 
-```
-;;x-editor-theme: dark
-;;x-accent-grid: 0,4,8
-```
-
-This prevents tool-specific headers from colliding with future official keys.
-
-### §5.1 Note-number aliases
+### §6.1 Note-number aliases
 
 When `;;notes:` and `;;note-numbers:` are both present, each note name in `;;notes:` is aliased by the corresponding number in `;;note-numbers:`. In the tablature body, a 1–3 digit decimal number is treated exactly like the note name it aliases.
-
-```
-;;notes: D4 E4 F#4 A4 B4 D5 E5 F#5
-;;note-numbers: 0 1 2 3 4 5 6 7
-```
-
-Here `0` = `D4`, `1` = `E4`, `5` = `D5`, and so on. The two notations are interchangeable in any mix within a single document:
-
-```
-R: || 0   | -   | •   | -   | 3   | -   | 5   | -   ||
-L: || -   | K   | -   | K   | -   | K   | -   | K   ||
-```
-
-is equivalent to:
-
-```
-R: || D4  | -   | •   | -   | A4  | -   | D5  | -   ||
-L: || -   | K   | -   | K   | -   | K   | -   | K   ||
-```
 
 **Constraints:**
 
 - Both `;;notes:` and `;;note-numbers:` must appear together. Providing only one is a parse error.
 - The two lists must have the same number of entries. A length mismatch is a parse error.
 - Each number in `;;note-numbers:` must be unique. Duplicate numbers are a parse error.
-- Numbers are 1–3 decimal digits (range 0–999). Leading zeros are not permitted (e.g., `07` is a parse error).
-- Ascending from 0 is recommended but not required.
+- Numbers are 1–3 decimal digits (range 0–999). Leading zeros are not permitted.
 - When `;;notes:` is present, every note name and every resolved note number used in the body must appear in the `;;notes:` list → PARSE ERROR otherwise.
-
-**Style A cell widths for note numbers:**
-
-| Digits | Example cell | Width |
-|---|---|---|
-| 1 | `0  ` | 3 chars (number + 2 spaces) |
-| 2 | `12 ` | 3 chars (number + 1 space) |
-| 3 | `100` | 3 chars (number fills cell) |
-
-Note numbers cannot carry a modifier in Style A (the cell is fully consumed at 3 chars for 3-digit numbers). Use Style B for number + modifier (`0*`).
 
 ---
 
-## 6. Sections
+## 7. Sections
 
 ```
 [intro]               % plays once (default)
@@ -233,50 +248,28 @@ Note numbers cannot carry a modifier in Style A (the cell is fully consumed at 3
 
 - Section names are any non-whitespace token inside `[...]`.
 - `xN` (integer ≥ 2) declares the section plays N times in total.
-- A section label applies to **all consecutive R/L stanza pairs that follow it**, until the next label or end of file.
+- A section label applies to **all consecutive stanzas that follow it**, until the next label or end of file.
 - If no label precedes the first stanza, those stanzas belong to an implied unnamed section.
-- Playback order is top-to-bottom. A sequencer may re-order by name.
 
 ---
 
-## 7. Comments
+## 8. Comments
 
 ### Inline comments — `%`
 
 `%` starts a comment running to end of line. Valid anywhere in a body line or on its own line.
 
-```
-[chorus]              % repeat with variation on second pass
-R: || D   | -   | T   | -   || % strong downbeat
-L: || -   | K   | -   | K   ||
-```
-
-`%` inside a `;;` metadata line is **not** treated as a comment — metadata lines are parsed as `key: value` only.
+`%` inside a `;;` metadata line is **not** treated as a comment.
 
 ### Block comments — `%% … %%`
 
-`%%` opens a block comment; the next `%%` closes it. Everything between (including newlines) is stripped. Block comments may span multiple lines or appear inline.
-
-```
-%%
-Practice note: bars 3–4 are an improvised transition.
-Keep the left-hand pulse steady throughout.
-%%
-
-[bridge]
-R: || D   | -   | T   | -   ||
-L: || -   | K   | -   | K   ||
-```
-
-Single-line block comment: `%% tempo pushes here — play ahead of the beat %%`
+`%%` opens a block comment; the next `%%` closes it. Everything between (including newlines) is stripped.
 
 **Processing order:** block comments are stripped first (global pass), then inline `%` comments are stripped line by line, then parsing proceeds.
 
 ---
 
-## 8. Playability defaults
-
-Apply these unless the rhythm specifically requires otherwise.
+## 9. Playability defaults
 
 **Default 1 — One hand active per column.** Exactly one of (R, L) plays or ghosts; the other rests.
 > *Relaxation:* Both may be active `(active, active)` for polyrhythms and unisons. Both may rest `(-, -)` at a genuine silence.
@@ -284,205 +277,250 @@ Apply these unless the rhythm specifically requires otherwise.
 **Default 2 — Strict alternation.** One hand owns odd cells, the other owns even cells.
 > *Relaxation:* Break alternation for asymmetric groupings (3+3+2, swing, clave) when felt phrasing demands it.
 
-**Default 3 — Ghosts maintain the active hand's pulse.** When the active hand has nothing to play, write `•` not `-`. `-` means this hand genuinely rests.
+**Default 3 — Ghosts maintain the active hand's pulse.** When the active hand has nothing to play, write `•` not `-`.
 
-**Default 4 — Hand assignment follows position.** The hand that plays a sound is determined by where it falls in the alternation, not by what sound it is. Doums and notes swap hands freely.
+**Default 4 — Hand assignment follows position.** The hand that plays a sound is determined by where it falls in the alternation, not by what sound it is.
 
 ---
 
-## 9. Parser specification
+## 10. Parser specification
 
 ```
 Input:  HAT document string.
 Output: metadata dict + list of sections,
         each with (name, repeat, stanzas[]),
-        each stanza an ordered list of (R_cell, L_cell) timesteps.
+        each stanza: optional count_line[] + ordered list of (R_cell, L_cell) timesteps.
 
 ── Pre-processing ──────────────────────────────────────────────────────────
 
-1. Strip block comments: scan the full document string; remove all content
-   from the first occurrence of "%%" to the next "%%", inclusive. Repeat
-   until no "%%" pairs remain.
+1. Strip block comments: remove all content between "%%" pairs.
 
-2. Strip inline comments: for each line that does NOT start with ";;",
-   remove from the first "%" to end of line; trim trailing whitespace.
-   Discard if the result is empty.
+2. Strip inline comments: for each non-";;" line, remove from first "%" to
+   end of line; discard empty results.
+
+── Version detection ───────────────────────────────────────────────────────
+
+3. Read the first ";;" line. If it is ";;HAT v1.3.4" or later, apply the
+   v1.3.4 separator semantics (||| = bar, || = beat, | = visual).
+   If it is ";;HAT v1.3.3" or earlier, apply legacy semantics
+   (|| = bar, | = subdivision group — both carry formal constraints).
+   If no version line is present, assume v1.3.4 semantics.
 
 ── Parsing ─────────────────────────────────────────────────────────────────
 
-3. Scan lines top-to-bottom. Maintain: current_section (default unnamed).
+4. Scan lines top-to-bottom. Maintain: current_section (default unnamed).
 
-   ";;HAT v…"         → set version; must be the first ;; line seen.
+   ";;HAT v…"         → set version.
    ";;x-<key>: <val>" → store in metadata, take no further action.
    ";;<key>: <val>"   → store in metadata.
    "[name]"           → open new section, repeat = 1.
    "[name xN]"        → open new section, repeat = N.
-   "R: …"  or "L: …" → body line; accumulate into current section.
+   "C: …"             → count line; pair with next R:/L: stanza.
+   "R: …" or "L: …"  → body line; accumulate into current section.
    (anything else)    → skip.
 
-── Stanza assembly ─────────────────────────────────────────────────────────
+── Stanza assembly (v1.3.4 semantics) ──────────────────────────────────────
 
-4. Within each section, pair consecutive R:/L: lines into stanzas.
-   R must precede L; unpaired lines are a parse error.
+5. Within each section, pair consecutive R:/L: lines into stanzas.
+   A preceding C: line (if any) belongs to that stanza.
+   Unpaired R: or L: lines are a parse error.
 
-5. For each stanza, process R and L in parallel:
+6. For each stanza, process R and L (and optional C) in parallel:
 
-   a. Strip the "R:" / "L:" prefix.
+   a. Strip the "R:" / "L:" / "C:" prefix.
 
-   b. Split on "||" → bars (discard empty leading/trailing tokens).
+   b. Split on "|||" → bars (discard empty leading/trailing tokens).
+      Assert: R and L have the same bar count. Error otherwise.
 
-   c. Assert: R and L have the same bar count. Error otherwise.
+   c. For each bar, split on "||" → beats.
+      Assert: R and L have the same beat count per bar. Error otherwise.
 
-   d. For each bar (R-bar, L-bar) in parallel:
-        i.  Record "|" positions (cell indices) in R-bar.
-        ii. Record "|" positions in L-bar.
-        iii.If either set is non-empty and the two sets differ → PARSE ERROR.
-             Subdivision positions must match exactly; L positions are not
-             silently discarded.
-        iv. Replace "|" with " " in both bars; split on whitespace → cells.
-        v.  Assert: R-bar and L-bar yield the same cell count. Error otherwise.
+   d. Within each beat, record "|" positions (cell indices) in R and L.
+      If both R and L have "|" markers and they differ → PARSE ERROR.
+      (If only one line has "|" markers and the other does not, the
+      markers are silently treated as absent — they are visual only.)
+      Replace "|" with whitespace; split on whitespace → cells.
+      Assert: R and L yield the same cell count per beat. Error otherwise.
 
-   e. Parse each cell token (stripped of whitespace):
-
-        '-'          → REST
-        '•'          → GHOST
+   e. Parse each cell token:
+        '-'            → REST
+        '•'            → GHOST
         'D' 'T' 'K'
         't' 'k' 'S'
-        'd'          → HIT; if token[1] ∈ {'#','b','0'–'9'} AND token[0]=='D'
-                         → NOTE (see note parsing below)
-                       else modifier = token[1] if token[1]=='*' else None
+        'd'            → HIT (see note disambiguation below)
         'A'–'G'
-        (excl. above)→ NOTE
-
+        (excl. above)  → NOTE
         '0'–'9'
-        (all digits) → NUMBER; look up in note-number map (from ;;notes:/;;note-numbers:)
-                         → resolve to the mapped note name → NOTE (as above)
-                       if note-number map is not defined → PARSE ERROR
-                       if number not found in map → PARSE ERROR
-                       if leading zero and len > 1 (e.g. "07") → PARSE ERROR
+        (all digits)   → NUMBER; resolve via note-number map → NOTE
+                         if map absent or number unknown → PARSE ERROR
+                         if leading zero and len > 1 → PARSE ERROR
 
-        Note parsing:
-          pitch ← token[0]
-          i ← 1
-          acc ← token[i] if token[i] ∈ {'#','b'} else ''
-          if acc: i++
-          octave ← token[i] if token[i].isdigit() else None
-          if octave: i++
-          modifier ← token[i] if i < len(token) and token[i]=='*' else None
-          → Note(pitch, acc, octave, modifier)
+      Note disambiguation: 'D' followed by '#', 'b', or a digit → NOTE.
+      Note parsing: pitch [acc] [octave] [modifier '*']
+
+   f. If a C: line is present for this stanza:
+        i.  Apply the same "|||" / "||" / "|" splitting as R/L.
+        ii. Assert: bar count and beat count match R/L. Error otherwise.
+        iii.Assert: cell count per beat matches R/L. Error otherwise.
+        iv. Assert: each token is a positive integer (no leading zeros),
+            'e', '&', or 'a'. Any other token → PARSE ERROR.
+        v.  Store count tokens paired 1-to-1 with (R, L) timesteps.
+
+── Beat metadata ────────────────────────────────────────────────────────────
+
+7. For each stanza, record for each timestep:
+     bar_index       — 0-based bar number
+     beat_index      — 0-based beat within bar
+     col_index       — 0-based cell within beat
+     sub_group       — 0-based "|" visual-group index within beat (if any)
+     count_token     — C: token for this timestep (or null)
 
 ── Validation ──────────────────────────────────────────────────────────────
 
-6. Column constraints (per timestep i):
+8. Column constraints (per timestep i):
      All four column types are valid:
        (active, -)    (-, active)    (active, active)    (-, -)
-     "active" = any symbol other than '-'.
 
-7. Note validation (applied after header parsing, before body parsing):
-     - If ";;notes:" is present, every note name used in the body must appear in
-       that list → PARSE ERROR otherwise.
-     - If exactly one of ";;notes:" / ";;note-numbers:" is present → PARSE ERROR.
-     - If both are present:
-         i.  The two lists must have the same entry count → PARSE ERROR if not.
-         ii. All entries in ";;note-numbers:" must be valid 1–3 digit decimal
-             integers with no leading zeros → PARSE ERROR otherwise.
-         iii.Entries in ";;note-numbers:" must be unique → PARSE ERROR if duplicate.
-         iv. Build the note-number map: number → note-name (parallel index).
-         v.  Every note number used in the body must appear in the map
-             → PARSE ERROR otherwise.
+9. Note validation (applied after header parsing):
+     If ";;notes:" is present, every note name used in the body must
+     appear in that list → PARSE ERROR otherwise.
+     If exactly one of ";;notes:" / ";;note-numbers:" is present → PARSE ERROR.
+     If both are present: apply §6.1 constraints.
 
 ── Emission ────────────────────────────────────────────────────────────────
 
-8. For each section, emit its stanzas in order, repeated `repeat` times.
-   Each timestep (R_cell, L_cell) has duration = cell_duration(grid, tempo).
+10. For each section, emit its stanzas repeated `repeat` times.
+    Each timestep (R_cell, L_cell) has duration = cell_duration(grid).
+    One beat = cells_per_beat × cell_duration; tempo = beats per minute.
 
-   Cell durations:
-     4th          = 1 beat
-     8th          = ½ beat
-     16th         = ¼ beat
-     32nd         = ⅛ beat
-     triplet-4th  = ⅓ of a half-note  (= ⅔ beat)
-     triplet-8th  = ⅓ of a beat
-     triplet-16th = ⅓ of a half-beat
+    Cell durations:
+      4th          = 1 quarter note
+      8th          = 1 eighth note
+      16th         = 1 sixteenth note
+      32nd         = 1 thirty-second note
+      triplet-4th  = ⅓ of a half-note
+      triplet-8th  = ⅓ of a quarter note
+      triplet-16th = ⅓ of an eighth note
 ```
 
 ---
 
-## 10. Worked examples
+## 11. Worked examples
 
-### A — Maqsoum (all defaults, 3-char Style A)
+### A — Maqsoum (4/4, 8th note, quarter-note beats)
 
 ```
-;;HAT v1.3.3
+;;HAT v1.3.4
 ;;time: 4/4
 ;;grid: 8th
+;;tempo: 120
 
-R: || D   | -   | •   | -   | D   | -   | T   | -   ||
-L: || -   | K   | -   | K   | -   | •   | -   | •   ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || D  - || T  - |||
+L: ||| -  K || -  K || -  • || -  • |||
 ```
+
+Four beats, two 8th notes each. At ;;tempo: 120, one beat = 0.5 s → ♩ = 120.
 
 ### B — Note targeting with sections
 
 ```
-;;HAT v1.3.3
+;;HAT v1.3.4
 ;;tuning: D Kurd
 ;;time: 4/4
 ;;grid: 8th
 ;;notes: D4 E4 F#4 A4 B4 D5 E5 F#5
 
 [groove x2]
-R: || D   | -   | •   | -   | D   | -   | T   | -   ||
-L: || -   | K   | -   | K   | -   | •   | -   | •   ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || D  - || T  - |||
+L: ||| -  K || -  K || -  • || -  • |||
 
 [melody]
-R: || F#4 | -   | A4  | -   | B4  | -   | D5  | -   ||
-L: || -   | K   | -   | K   | -   | K   | -   | K   ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| F#4 - || A4  - || B4  - || D5  - |||
+L: ||| -  K  || -  K  || -  K  || -  K  |||
 ```
 
-### C — Triplet-8th swing (3 cells per beat, 12 cells/bar in 4/4)
+### C — Compound meter: Reng (6/8, dotted-quarter beats)
 
 ```
-;;HAT v1.3.3
-;;time: 4/4
-;;grid: triplet-8th
-;;tempo: 120
-
-%% Each | group is one quarter-note beat (3 triplet-8th cells).
-   R plays the downbeat, L plays the tail of each triplet. %%
-
-R: || D   •   -   | D   •   -   | T   •   -   | T   •   -   ||
-L: || -   -   K   | -   -   K   | -   -   K   | -   -   K   ||
-```
-
-### D — Muted taks and extension metadata
-
-```
-;;HAT v1.3.3
-;;time: 4/4
+;;HAT v1.3.4
+;;time: 6/8
 ;;grid: 8th
-;;x-editor-id: session-42     % private extension, ignored by parsers
+;;tempo: 60
 
-R: || D   | -   | t   | -   | D   | -   | T   | -   ||  % t = muted tak
-L: || -   | k   | -   | K   | -   | •   | -   | •   ||  % k = muted tak-L
+C: ||| 1  e  & || 2  e  & |||
+R: ||| D  -  T || -  •  - |||
+L: ||| -  •  - || D  -  K |||
 ```
 
-### E — 3-against-2 polyrhythm (Style B, silent steps)
+Two beats, three 8th notes each. At ;;tempo: 60, one beat = 1 s → ♩. = 60.
+
+### D — Asymmetric meter: Persian 7/8 (3+2+2 beat groups)
 
 ```
-;;HAT v1.3.3
+;;HAT v1.3.4
+;;time: 7/8
+;;grid: 8th
+;;subdivision: 3+2+2
+;;tempo: 100
+
+C: ||| 1  e  & || 2  & || 3  & |||
+R: ||| D  -  • || T  - || T  - |||
+L: ||| -  •  - || -  • || -  • |||
+```
+
+Three felt beats of 3, 2, 2 eighth notes. ;;tempo: 100 = 100 felt beats per minute.
+
+### E — 16th note grid with optional `|` visual sub-groups
+
+```
+;;HAT v1.3.4
 ;;time: 2/4
 ;;grid: 16th
+;;tempo: 120
 
-R: || D - D - D - ||
-L: || D - - D - - ||
+C: ||| 1  e | &  a || 2  e | &  a |||
+R: ||| D  - | •  - || •  - | T  - |||
+L: ||| -  • | -  K || -  • | -  • |||
 ```
 
-Cell 1 is a unison `(D, D)`. Cells 2 and 6 are silent `(-, -)`. Both are valid.
+Two beats of four 16th notes each. The `|` markers subdivide each beat into pairs of 16th notes (visual only — parsers may ignore mismatches). At ;;tempo: 120, ♩ = 120.
 
-### F — Note-number aliases (Style A)
+### F — Indian tala: Keherwa (8/4, quarter-note grid)
 
 ```
-;;HAT v1.3.3
+;;HAT v1.3.4
+;;time: 8/4
+;;grid: 4th
+;;subdivision: 4+4
+;;tempo: 80
+
+C: ||| 1 || 2 || 3 || 4 ||| 1 || 2 || 3 || 4 |||
+R: ||| D || - || • || - ||| D || - || T || - |||
+L: ||| - || K || - || • ||| - || K || - || • |||
+```
+
+Two bars of four quarter-note beats. ;;tempo: 80 → ♩ = 80.
+
+### G — Multi-bar pattern: Son Clave 3-2
+
+```
+;;HAT v1.3.4
+;;time: 4/4
+;;grid: 8th
+;;tempo: 120
+
+C: ||| 1  & || 2  & || 3  & || 4  & ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || •  - || D  - ||| •  - || T  - || T  - || •  - |||
+L: ||| -  • || -  D || -  • || -  • ||| -  • || -  • || -  • || -  • |||
+```
+
+### H — Note-number aliases
+
+```
+;;HAT v1.3.4
 ;;tuning: D Kurd
 ;;time: 4/4
 ;;grid: 8th
@@ -490,26 +528,54 @@ Cell 1 is a unison `(D, D)`. Cells 2 and 6 are silent `(-, -)`. Both are valid.
 ;;note-numbers: 0 1 2 3 4 5 6 7
 
 [groove]
-R: || D   | -   | •   | -   | D   | -   | T   | -   ||
-L: || -   | K   | -   | K   | -   | •   | -   | •   ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || D  - || T  - |||
+L: ||| -  K || -  K || -  • || -  • |||
 
 [melody]
-R: || 2   | -   | 3   | -   | 4   | -   | 5   | -   ||
-L: || -   | K   | -   | K   | -   | K   | -   | K   ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| 2  - || 3  - || 4  - || 5  - |||
+L: ||| -  K || -  K || -  K || -  K |||
 ```
 
-`2` resolves to `F#4`, `3` to `A4`, `4` to `B4`, `5` to `D5`. The groove section uses standard hit symbols; the melody section uses note numbers. Both are valid in the same document.
+### I — Triplet feel (triplet-8th grid)
+
+```
+;;HAT v1.3.4
+;;time: 4/4
+;;grid: triplet-8th
+;;tempo: 120
+
+%% Each || group is one quarter-note beat (3 triplet-8th cells). %%
+
+C: ||| 1  e  & || 2  e  & || 3  e  & || 4  e  & |||
+R: ||| D  •  - || D  •  - || T  •  - || T  •  - |||
+L: ||| -  -  K || -  -  K || -  -  K || -  -  K |||
+```
 
 ---
 
-## 11. Minimum well-formed document
+## 12. Minimum well-formed document
 
 ```
-;;HAT v1.3.3
+;;HAT v1.3.4
 ;;grid: 8th
 
-R: || D   ||
-L: || -   ||
+R: ||| D |||
+L: ||| - |||
 ```
 
-`;;grid:` is the only required key beyond the version declaration.
+`;;grid:` is the only required key beyond the version declaration. A single bar with a single beat containing a single cell is valid.
+
+---
+
+## 13. Legacy compatibility (v1.3.3 and earlier)
+
+Parsers that support multiple versions should detect the version from the `;;HAT v…` header and apply the corresponding separator semantics:
+
+| Version | Bar separator | Beat/subdivision separator |
+|---|---|---|
+| v1.3.3 and earlier | `\|\|` | `\|` (formal, positions must match R/L) |
+| v1.3.4 and later | `\|\|\|` | `\|\|` (beats); `\|` visual only |
+
+A v1.3.4 parser receiving a v1.3.3 document should re-parse using `||` as bar boundaries. The `C:` line is not present in v1.3.3 documents.

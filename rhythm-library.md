@@ -1,6 +1,6 @@
-# World Rhythm Library — HAT v1.3.3 Edition
+# World Rhythm Library — HAT v1.3.4 Edition
 
-A reference library of traditional and global rhythms transcribed into Handpan ASCII Tab (HAT) v1.3.3 format. Each rhythm is presented in its **base/canonical form**, adapted for handpan playability per HAT v1.3.3 defaults:
+A reference library of traditional and global rhythms transcribed into Handpan ASCII Tab (HAT) v1.3.4 format. Each rhythm is presented in its **base/canonical form**, adapted for handpan playability per HAT v1.3.4 defaults:
 
 - Strict R-L alternation at the grid resolution wherever possible
 - Felt-grouping alternation (Default 2 relaxed) for asymmetric meters like 3+3+2
@@ -10,7 +10,7 @@ A reference library of traditional and global rhythms transcribed into Handpan A
 - Doums (`D`) freely swap hands as alternation requires
 - Ghost notes (`•`) maintain pulse on the active hand; `-` marks the resting hand
 
-All blocks are HAT v1.3.3. The `;;HAT v1.3.3` line is omitted for brevity but applies throughout.
+All blocks are HAT v1.3.4. The `;;HAT v1.3.4` line is omitted for brevity but applies throughout.
 
 **Source inspiration:** Categories drawn from the Handpan Dojo World Rhythm Library by David Kuckhermann. Patterns here are canonical/textbook versions from common pedagogy, not direct transcriptions of his specific handpan interpretations.
 
@@ -45,8 +45,9 @@ The most iconic Arabic dance rhythm. Pattern: D T - T D - T -.
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | •  | -  | D  | -  | T  | -  ||
-L: || -  | K  | -  | K  | -  | •  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || D  - || T  - |||
+L: ||| -  K || -  K || -  • || -  • |||
 ```
 
 ### Belledi / Masmoudi Saghir (4/4)
@@ -58,8 +59,9 @@ Heavier-feeling cousin of Maqsoum with two opening doums. Pattern: D D - T D - T
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | •  | -  | D  | -  | T  | -  ||
-L: || -  | D  | -  | K  | -  | •  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || D  - || T  - |||
+L: ||| -  D || -  K || -  • || -  • |||
 ```
 
 ### Saidi (4/4)
@@ -71,8 +73,9 @@ Sister rhythm to Maqsoum and Belledi. Pattern: D - T D D - T -. The double doum 
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | T  | -  | D  | -  | T  | -  ||
-L: || -  | •  | -  | D  | -  | •  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || T  - || D  - || T  - |||
+L: ||| -  • || -  D || -  • || -  • |||
 ```
 
 ### Malfuf (2/4)
@@ -84,8 +87,9 @@ A 3+3+2 sixteenth-note pattern found around the world. Pattern: D - - T - - T -.
 ;;time: 2/4
 ;;grid: 16th
 
-R: || D - • - | • - T - ||
-L: || - • - K | - • - • ||
+C: ||| 1  e  &  a || 2  e  &  a |||
+R: ||| D  -  •  - || •  -  T  - |||
+L: ||| -  •  -  K || -  •  -  • |||
 ```
 
 ### Khaligi (2/4)
@@ -97,8 +101,9 @@ Like Malfuf but with two doums for extra weight. Pattern: D - - D - - T -.
 ;;time: 2/4
 ;;grid: 16th
 
-R: || D - • - | • - T - ||
-L: || - • - D | - • - • ||
+C: ||| 1  e  &  a || 2  e  &  a |||
+R: ||| D  -  •  - || •  -  T  - |||
+L: ||| -  •  -  D || -  •  -  • |||
 ```
 
 ### Ayoub (2/4)
@@ -110,8 +115,9 @@ A short, bouncy Sufi rhythm. Pattern: D - T D. The second doum forces a hand swa
 ;;time: 2/4
 ;;grid: 8th
 
-R: || D | - | T | - ||
-L: || - | • | - | D ||
+C: ||| 1  & || 2  & |||
+R: ||| D  - || T  - |||
+L: ||| -  • || -  D |||
 ```
 
 ### Wahda (4/4)
@@ -123,8 +129,9 @@ L: || - | • | - | D ||
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | •  | -  | •  | -  | T  | -  ||
-L: || -  | •  | -  | K  | -  | •  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || •  - || T  - |||
+L: ||| -  • || -  K || -  • || -  • |||
 ```
 
 ### Sombati / Chiftetelli (4/4)
@@ -136,8 +143,9 @@ Doubletime Chiftetelli without the double doum. Son-clave-adjacent, with accent 
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | T  | -  | •  | -  | D  | -  ||
-L: || -  | •  | -  | •  | -  | K  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || T  - || •  - || D  - |||
+L: ||| -  • || -  • || -  K || -  • |||
 ```
 
 ---
@@ -153,8 +161,9 @@ A common Persian 6/8 dance feel. Two felt beats per bar with doums anchoring eac
 ;;time: 6/8
 ;;grid: 8th
 
-R: || D | - | T | - | • | - ||
-L: || - | • | - | D | - | K ||
+C: ||| 1  e  & || 2  e  & |||
+R: ||| D  -  T || -  •  - |||
+L: ||| -  •  - || D  -  K |||
 ```
 
 ### Persian 7/8 (3+2+2)
@@ -167,8 +176,9 @@ Common in Persian dance music. Three-then-two-then-two grouping.
 ;;grid: 8th
 ;;subdivision: 3+2+2
 
-R: || D - • | T - | T - ||
-L: || - • - | - • | - • ||
+C: ||| 1  e  & || 2  & || 3  & |||
+R: ||| D  -  • || T  - || T  - |||
+L: ||| -  •  - || -  • || -  • |||
 ```
 
 ---
@@ -184,8 +194,9 @@ Greek "butcher's dance" rhythm. Steady, danceable, often paired with Rebetiko so
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | T  | -  | D  | -  | T  | -  ||
-L: || -  | •  | -  | •  | -  | •  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || T  - || D  - || T  - |||
+L: ||| -  • || -  • || -  • || -  • |||
 ```
 
 ### Kalamatianos (7/8)
@@ -198,8 +209,9 @@ Greek folk dance in 7/8, grouped 3+2+2. The slow beat carries the doum, the two 
 ;;grid: 8th
 ;;subdivision: 3+2+2
 
-R: || D - • | T - | T - ||
-L: || - • - | - • | - • ||
+C: ||| 1  e  & || 2  & || 3  & |||
+R: ||| D  -  • || T  - || T  - |||
+L: ||| -  •  - || -  • || -  • |||
 ```
 
 ### Zeybekiko (9/8)
@@ -212,8 +224,9 @@ Greek dance in 9/8, grouped 2+2+2+3 (the long beat at the end). Stately, often p
 ;;grid: 8th
 ;;subdivision: 2+2+2+3
 
-R: || D - | T - | D - | T - • ||
-L: || - • | - • | - • | - • - ||
+C: ||| 1  & || 2  & || 3  & || 4  e  & |||
+R: ||| D  - || T  - || D  - || T  -  • |||
+L: ||| -  • || -  • || -  • || -  •  - |||
 ```
 
 ---
@@ -229,8 +242,9 @@ Pop-influenced flamenco rhythm, related to Cuban rumba but distinct. Pattern: D 
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | T  | -  | D  | -  | •  | -  ||
-L: || -  | •  | -  | •  | -  | K  | -  | K  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || T  - || D  - || •  - |||
+L: ||| -  • || -  • || -  K || -  K |||
 ```
 
 ### Tangos Flamencos (4/4)
@@ -242,8 +256,9 @@ Not the Argentinian tango — a different flamenco form. Strong accent on beat 2
 ;;time: 4/4
 ;;grid: 8th
 
-R: || •  | -  | D  | -  | •  | -  | D  | -  ||
-L: || -  | K  | -  | K  | -  | K  | -  | K  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| •  - || D  - || •  - || D  - |||
+L: ||| -  K || -  K || -  K || -  K |||
 ```
 
 ### Bulería (12/8)
@@ -256,8 +271,9 @@ Cornerstone flamenco rhythm in 12 counts, with characteristic accents on 12, 3, 
 ;;grid: 8th
 ;;subdivision: 3+3+2+2+2
 
-R: || D - • | T - • | D - | T - | D - ||
-L: || - • - | - • - | - • | - • | - • ||
+C: ||| 1  e  & || 2  e  & || 3  & || 4  & || 5  & |||
+R: ||| D  -  • || T  -  • || D  - || T  - || D  - |||
+L: ||| -  •  - || -  •  - || -  • || -  • || -  • |||
 ```
 
 ---
@@ -274,8 +290,9 @@ The most common tala in Hindustani classical music. 16 beats grouped 4+4+4+4. Th
 ;;grid: 4th
 ;;subdivision: 4+4+4+4
 
-R: || D | T | T | D || D | T | T | D || • | T | T | D || D | T | T | D ||
-L: || - | • | • | - || - | • | • | - || - | • | • | - || - | • | • | - ||
+C: ||| 1 || 2 || 3 || 4 ||| 5 || 6 || 7 || 8 ||| 9 || 10 || 11 || 12 ||| 13 || 14 || 15 || 16 |||
+R: ||| D || T || T || D ||| D || T || T || D ||| •  || T  || T  || D  ||| D  || T  || T  || D  |||
+L: ||| - || • || • || - ||| -  || • || • || - ||| -  || •  || •  || -  ||| -   || •  || •  || -  |||
 ```
 
 ### Keherwa (8-beat)
@@ -288,8 +305,9 @@ Common 8-beat tala used in semi-classical and folk music. Two halves of 4 beats 
 ;;grid: 4th
 ;;subdivision: 4+4
 
-R: || D  | -  | •  | -  || D  | -  | T  | -  ||
-L: || -  | K  | -  | •  || -  | K  | -  | •  ||
+C: ||| 1 || 2 || 3 || 4 ||| 5 || 6 || 7 || 8 |||
+R: ||| D || - || • || - ||| D || - || T || - |||
+L: ||| - || K || - || • ||| - || K || - || • |||
 ```
 
 ### Dadra (6-beat)
@@ -302,8 +320,9 @@ A 6-beat tala used in light classical, folk, and devotional music. Grouped 3+3. 
 ;;grid: 4th
 ;;subdivision: 3+3
 
-R: || D  | -  | •  || -  | T  | -  ||
-L: || -  | K  | -  || D  | -  | •  ||
+C: ||| 1 || 2 || 3 ||| 4 || 5 || 6 |||
+R: ||| D || - || • ||| - || T || - |||
+L: ||| - || K || - ||| D || - || • |||
 ```
 
 ### Rupak (7-beat)
@@ -316,8 +335,9 @@ L: || -  | K  | -  || D  | -  | •  ||
 ;;grid: 4th
 ;;subdivision: 3+2+2
 
-R: || T  | -  | •  || -  | T  || -  | T  ||
-L: || -  | K  | -  || D  | -  || D  | -  ||
+C: ||| 1  2  3 || 4  5 || 6  7 |||
+R: ||| T  -  • || -  T || -  T |||
+L: ||| -  K  - || D  - || D  - |||
 ```
 
 ---
@@ -333,8 +353,9 @@ The fundamental 6/8 djembe groove. Two felt beats per bar with each broken into 
 ;;time: 6/8
 ;;grid: 8th
 
-R: || D | - | T | - | • | - ||
-L: || - | • | - | D | - | K ||
+C: ||| 1  e  & || 2  e  & |||
+R: ||| D  -  T || -  •  - |||
+L: ||| -  •  - || D  -  K |||
 ```
 
 ### Kuku (4/4)
@@ -346,8 +367,9 @@ A celebratory dance rhythm from the forest region of Guinea. Simplified base pat
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | T  | -  | D  | -  | T  | -  ||
-L: || -  | K  | -  | •  | -  | K  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || T  - || D  - || T  - |||
+L: ||| -  K || -  • || -  K || -  • |||
 ```
 
 ---
@@ -363,8 +385,9 @@ Sufi-trance music from Morocco, traditionally played on guembri (3-string bass l
 ;;time: 6/8
 ;;grid: 8th
 
-R: || D | - | T | D | - | T ||
-L: || - | • | - | - | • | - ||
+C: ||| 1  e  & || 2  e  & |||
+R: ||| D  -  T || D  -  T |||
+L: ||| -  •  - || -  •  - |||
 ```
 
 ### Chaabi (4/4)
@@ -376,8 +399,9 @@ Moroccan popular folk rhythm. Often felt with a swung 16th-note shuffle, simplif
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | T  | -  | D  | T  | T  | -  ||
-L: || -  | K  | -  | K  | -  | -  | -  | K  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || T  - || D  T || T  - |||
+L: ||| -  K || -  K || -  - || -  K |||
 ```
 
 ---
@@ -393,8 +417,9 @@ The foundational clave of Cuban music. Five hits over two bars of 4/4. The "3 si
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | •  | -  | •  | -  | D  | -  || •  | -  | T  | -  | T  | -  | •  | -  ||
-L: || -  | •  | -  | D  | -  | •  | -  | •  || -  | •  | -  | •  | -  | •  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || •  - || D  - ||| •  - || T  - || T  - || •  - |||
+L: ||| -  • || -  D || -  • || -  • ||| -  • || -  • || -  • || -  • |||
 ```
 
 ### Rumba Clave 3-2 (4/4, 2 bars)
@@ -406,8 +431,9 @@ The clave for Cuban rumba styles. Differs from son clave by shifting the third h
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | •  | -  | •  | -  | •  | -  || D  | -  | T  | -  | T  | -  | •  | -  ||
-L: || -  | •  | -  | D  | -  | •  | -  | D  || -  | •  | -  | •  | -  | •  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || •  - || •  - ||| D  - || T  - || T  - || •  - |||
+L: ||| -  • || -  D || -  • || -  D ||| -  • || -  • || -  • || -  • |||
 ```
 
 ### Bembé / 6/8 Standard Pattern
@@ -419,8 +445,9 @@ The "Standard Pattern" of African and Afro-Caribbean music — the most widespre
 ;;time: 12/8
 ;;grid: 8th
 
-R: || D | - | T | - | T | - || • | - | • | - | • | - ||
-L: || - | • | - | • | - | D || - | K | - | K | - | K ||
+C: ||| 1  e  & || 2  e  & ||| 1  e  & || 2  e  & |||
+R: ||| D  -  T || -  T  - ||| •  -  • || -  •  - |||
+L: ||| -  •  - || •  -  D ||| -  K  - || K  -  K |||
 ```
 
 ### Tumbao (4/4)
@@ -432,8 +459,9 @@ The bass-pattern foundation of Cuban son and salsa. Anticipates beat 1 from beat
 ;;time: 4/4
 ;;grid: 8th
 
-R: || •  | -  | T  | -  | D  | -  | •  | -  ||
-L: || -  | •  | -  | K  | -  | •  | -  | D  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| •  - || T  - || D  - || •  - |||
+L: ||| -  • || -  K || -  • || -  D |||
 ```
 
 ---
@@ -449,8 +477,9 @@ The heartbeat of Brazilian carnival. Surdo doum on beat 2; offbeat taks througho
 ;;time: 2/4
 ;;grid: 16th
 
-R: || D - T - | • - D - ||
-L: || - • - • | - K - K ||
+C: ||| 1  e  &  a || 2  e  &  a |||
+R: ||| D  -  T  - || •  -  D  - |||
+L: ||| -  •  -  • || -  K  -  K |||
 ```
 
 ### Bossa Nova (4/4)
@@ -462,8 +491,9 @@ Cool, syncopated 4/4 derived from Samba. The "Brazilian clave" (a 3-2 style patt
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | •  | -  | T  | -  | •  | -  ||
-L: || -  | •  | -  | K  | -  | •  | -  | K  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || •  - || T  - || •  - |||
+L: ||| -  • || -  K || -  • || -  K |||
 ```
 
 ### Baião (2/4)
@@ -475,8 +505,9 @@ The foundational rhythm of Forró music from Northeastern Brazil. Structurally i
 ;;time: 2/4
 ;;grid: 16th
 
-R: || D - • - | • - T - ||
-L: || - • - D | - • - • ||
+C: ||| 1  e  &  a || 2  e  &  a |||
+R: ||| D  -  •  - || •  -  T  - |||
+L: ||| -  •  -  D || -  •  -  • |||
 ```
 
 ### Partido Alto (4/4)
@@ -488,8 +519,9 @@ A samba subgenre with a distinctive 2-bar syncopated pattern. Bossa-adjacent but
 ;;time: 4/4
 ;;grid: 8th
 
-R: || •  | -  | T  | -  | D  | -  | T  | -  ||
-L: || -  | D  | -  | K  | -  | K  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| •  - || T  - || D  - || T  - |||
+L: ||| -  D || -  K || -  K || -  • |||
 ```
 
 ---
@@ -509,8 +541,9 @@ The slower, more lyrical Forró rhythm. Roots in European polka and schottische,
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | T  | -  | D  | -  | T  | -  ||
-L: || -  | •  | -  | •  | -  | •  | -  | K  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || T  - || D  - || T  - |||
+L: ||| -  • || -  • || -  • || -  K |||
 ```
 
 ### Arrasta-pé (2/4)
@@ -522,8 +555,9 @@ L: || -  | •  | -  | •  | -  | •  | -  | K  ||
 ;;time: 2/4
 ;;grid: 16th
 
-R: || D - • - | D - • - ||
-L: || - D - K | - D - K ||
+C: ||| 1  e  &  a || 2  e  &  a |||
+R: ||| D  -  •  - || D  -  •  - |||
+L: ||| -  D  -  K || -  D  -  K |||
 ```
 
 ### Coco (2/4)
@@ -535,8 +569,9 @@ A rhythm and dance from the coastal Northeast (Pernambuco, Alagoas), closely rel
 ;;time: 2/4
 ;;grid: 16th
 
-R: || D - T - | D - • - ||
-L: || - • - • | - K - K ||
+C: ||| 1  e  &  a || 2  e  &  a |||
+R: ||| D  -  T  - || D  -  •  - |||
+L: ||| -  •  -  • || -  K  -  K |||
 ```
 
 ### Xaxado (2/4)
@@ -548,8 +583,9 @@ The dance and rhythm of the cangaceiros — armed bandits of the Brazilian North
 ;;time: 2/4
 ;;grid: 8th
 
-R: || D | - | D | - ||
-L: || - | K | - | K ||
+C: ||| 1  & || 2  & |||
+R: ||| D  - || D  - |||
+L: ||| -  K || -  K |||
 ```
 
 ### Quadrilha (2/4)
@@ -561,8 +597,9 @@ Brazilian adaptation of the European *quadrille* — a square dance rhythm. Cent
 ;;time: 2/4
 ;;grid: 8th
 
-R: || D | - | T | - ||
-L: || - | K | - | K ||
+C: ||| 1  & || 2  & |||
+R: ||| D  - || T  - |||
+L: ||| -  K || -  K |||
 ```
 
 ---
@@ -578,8 +615,9 @@ The defining groove of popular music. Kick (D) on 1 and 3; snare (T) on 2 and 4.
 ;;time: 4/4
 ;;grid: 8th
 
-R: || D  | -  | T  | -  | D  | -  | T  | -  ||
-L: || -  | •  | -  | •  | -  | •  | -  | •  ||
+C: ||| 1  & || 2  & || 3  & || 4  & |||
+R: ||| D  - || T  - || D  - || T  - |||
+L: ||| -  • || -  • || -  • || -  • |||
 ```
 
 ### Funk (4/4)
@@ -591,8 +629,9 @@ Syncopated kick patterns plus the standard backbeat. Anticipated kick on 3& is t
 ;;time: 4/4
 ;;grid: 16th
 
-R: || D - • • | T - • D | • • D - | T - • • ||
-L: || - • K • | - • K • | - • K • | - • K • ||
+C: ||| 1  e  &  a || 2  e  &  a || 3  e  &  a || 4  e  &  a |||
+R: ||| D  -  •  • || T  -  •  D || •  •  D  - || T  -  •  • |||
+L: ||| -  •  K  • || -  •  K  • || -  •  K  • || -  •  K  • |||
 ```
 
 ---
@@ -609,8 +648,9 @@ Quick-quick-quick / quick-quick. Long beat first.
 ;;grid: 8th
 ;;subdivision: 3+2
 
-R: || D - • | T - ||
-L: || - • - | - • ||
+C: ||| 1  e  & || 2  & |||
+R: ||| D  -  • || T  - |||
+L: ||| -  •  - || -  • |||
 ```
 
 ### 5/8 (2+3)
@@ -623,8 +663,9 @@ Quick-quick / quick-quick-quick. Long beat second.
 ;;grid: 8th
 ;;subdivision: 2+3
 
-R: || D - | T - • ||
-L: || - • | - • - ||
+C: ||| 1  & || 2  e  & |||
+R: ||| D  - || T  -  • |||
+L: ||| -  • || -  •  - |||
 ```
 
 ### 7/8 (3+2+2)
@@ -637,8 +678,9 @@ The most common 7/8 grouping. Long-short-short.
 ;;grid: 8th
 ;;subdivision: 3+2+2
 
-R: || D - • | T - | T - ||
-L: || - • - | - • | - • ||
+C: ||| 1  e  & || 2  & || 3  & |||
+R: ||| D  -  • || T  - || T  - |||
+L: ||| -  •  - || -  • || -  • |||
 ```
 
 ### 7/8 (2+2+3)
@@ -651,8 +693,9 @@ Short-short-long. Common in Bulgarian and Macedonian folk.
 ;;grid: 8th
 ;;subdivision: 2+2+3
 
-R: || D - | T - | D - • ||
-L: || - • | - • | - • - ||
+C: ||| 1  & || 2  & || 3  e  & |||
+R: ||| D  - || T  - || D  -  • |||
+L: ||| -  • || -  • || -  •  - |||
 ```
 
 ### 9/8 (2+2+2+3)
@@ -665,8 +708,9 @@ Karsilama / Turkish 9/8. Three short groups then a long.
 ;;grid: 8th
 ;;subdivision: 2+2+2+3
 
-R: || D - | T - | D - | T - • ||
-L: || - • | - • | - • | - • - ||
+C: ||| 1  & || 2  & || 3  & || 4  e  & |||
+R: ||| D  - || T  - || D  - || T  -  • |||
+L: ||| -  • || -  • || -  • || -  •  - |||
 ```
 
 ---
@@ -684,8 +728,9 @@ Two hits in the L hand against three in the R hand over the same time span. The 
 ;;time: 6/8
 ;;grid: 8th
 
-R: || D | • | D | • | D | • ||
-L: || D | - | - | D | - | - ||
+C: ||| 1  e  & || 2  e  & |||
+R: ||| D  •  D || •  D  • |||
+L: ||| D  -  - || D  -  - |||
 ```
 
 R plays even triplets (3 hits). L plays even duplets (2 hits). Both coincide on cell 1.
@@ -699,8 +744,9 @@ Same polyrhythm, hands swapped — three hits in L against two in R. Just a diff
 ;;time: 6/8
 ;;grid: 8th
 
-R: || D | - | - | D | - | - ||
-L: || D | • | D | • | D | • ||
+C: ||| 1  e  & || 2  e  & |||
+R: ||| D  -  - || D  -  - |||
+L: ||| D  •  D || •  D  • |||
 ```
 
 ### 3 against 4
@@ -712,8 +758,9 @@ Three hits in L against four in R over 12 cells. They coincide only on cell 1.
 ;;time: 12/8
 ;;grid: 8th
 
-R: || D | • | • | D | • | • | D | • | • | D | • | • ||
-L: || D | - | - | - | D | - | - | - | D | - | - | - ||
+C: ||| 1  e  & || 2  e  & || 3  e  & || 4  e  & |||
+R: ||| D  •  • || D  •  • || D  •  • || D  •  • |||
+L: ||| D  -  - || -  D  - || -  -  D || -  -  - |||
 ```
 
 R plays even quarter notes (4 hits). L plays even dotted-quarter notes (3 hits).
@@ -727,8 +774,9 @@ Hands swapped from 3-against-4 — four hits in L against three in R.
 ;;time: 12/8
 ;;grid: 8th
 
-R: || D | - | - | - | D | - | - | - | D | - | - | - ||
-L: || D | • | • | D | • | • | D | • | • | D | • | • ||
+C: ||| 1  e  & || 2  e  & || 3  e  & || 4  e  & |||
+R: ||| D  -  - || -  D  - || -  -  D || -  -  - |||
+L: ||| D  •  • || D  •  • || D  •  • || D  •  • |||
 ```
 
 ---
