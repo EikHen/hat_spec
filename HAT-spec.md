@@ -237,6 +237,15 @@ When `;;notes:` and `;;note-numbers:` are both present, each note name in `;;not
 - Numbers are 1–3 decimal digits (range 0–999). Leading zeros are not permitted.
 - When `;;notes:` is present, every note name and every resolved note number used in the body must appear in the `;;notes:` list → PARSE ERROR otherwise.
 
+**Recommended alignment:** When both fields are present, values should start at the same column (the width of `;;note-numbers: ` = 16 characters) and each field should be padded to 4 characters. This keeps note names and their numbers visually aligned:
+
+```
+;;notes:        D4  F4  A4  Bb4 C5  D5  F5
+;;note-numbers: 1   2   3   4   5   6   7
+```
+
+Compliant tools that emit these fields **should** produce this layout.
+
 ---
 
 ## 7. Sections

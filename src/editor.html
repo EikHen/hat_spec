@@ -476,6 +476,26 @@ function parseHAT(text) {
     meta._noteMap=noteMap; meta._noteNames=names.slice();
   }
 
+  // x-note-json: inline JSON — populate notes when not already set by inline fields
+  if (meta['x-note-json']&&!meta._noteNames) {
+    const xnj=meta['x-note-json'].trim();
+    if (xnj.startsWith('{')) {
+      try {
+        const obj=JSON.parse(xnj);
+        const keys=Object.keys(obj), nm={};
+        let entries;
+        if (keys.length&&/^\d+$/.test(keys[0]))
+          entries=keys.map(k=>({num:parseInt(k,10),name:obj[k]})); // {numStr:name}
+        else
+          entries=Object.entries(obj).map(([name,num])=>({name,num:parseInt(num,10)})); // {name:num}
+        entries.sort((a,b)=>a.num-b.num);
+        const names=entries.map(e=>e.name);
+        for (const e of entries) nm[String(e.num)]=e.name;
+        if (names.length) { meta._noteNames=names; meta._noteMap=nm; }
+      } catch(e) { /* invalid JSON */ }
+    }
+  }
+
   if (!sections.length) sections=[{label:'',Rlines,Llines,Clines}];
 
   const parsedSections=[], colCoords=[], allCols=[];
@@ -626,11 +646,22 @@ function parseCell(tok, noteMap, ctx) {
 //  SERIALIZER
 // ─────────────────────────────────────────────
 
+// Emit ;;notes: and ;;note-numbers: with aligned 4-char fields at column 16
+function serializeNotesLine(key, value) {
+  const PREFIX_LEN=16; // len(';;note-numbers: ')
+  const pfx=`;;${key}: `;
+  const pad=' '.repeat(Math.max(0,PREFIX_LEN-pfx.length));
+  return pfx+pad+value.trim().split(/\s+/).map(v=>v.padEnd(4)).join('').trimEnd();
+}
+
 function serializeHAT(meta, sections) {
   const lines=[';;HAT v1.3.4'], skip=new Set(['_noteMap','_noteNames']);
   const order=['title','time','grid','tempo','subdivision','notes','note-numbers'];
   const written=new Set();
-  for (const k of order) if (meta[k]!==undefined&&!skip.has(k)&&!k.startsWith('_')) { lines.push(`;;${k}: ${meta[k]}`); written.add(k); }
+  for (const k of order) if (meta[k]!==undefined&&!skip.has(k)&&!k.startsWith('_')) {
+    lines.push(k==='notes'||k==='note-numbers' ? serializeNotesLine(k,meta[k]) : `;;${k}: ${meta[k]}`);
+    written.add(k);
+  }
   for (const k of Object.keys(meta)) if (!written.has(k)&&!skip.has(k)&&!k.startsWith('_')&&k!=='hat') lines.push(`;;${k}: ${meta[k]}`);
   lines.push('');
   for (const sec of sections) {
@@ -723,7 +754,7 @@ const PATTERNS = [
   { cat:'Spec', name:'Maqsoum',         time:'4/4', grid:'8th', hat:
 `// HAT v1.3.4 reference — always updated to latest spec version\n;;HAT v1.3.4\n;;title: Maqsoum\n;;time: 4/4\n;;grid: 8th\n\nC: ||| 1   &   || 2   &   || 3   &   || 4   &   |||\nR: ||| D   -   || •   -   || D   -   || T   -   |||\nL: ||| -   K   || -   K   || -   •   || -   •   |||` },
   { cat:'Spec', name:'Bulería',         time:'12/8', grid:'8th', hat:
-`// HAT v1.3.4 reference — always updated to latest spec version\n;;HAT v1.3.4\n;;title: Bulería\n;;time: 12/8\n;;grid: 8th\n;;subdivision: 3+3+2+2+2\n;;tuning: D Kurd\n;;notes:       D4  F4  A4  Bb4  C5  D5  F5  G4  E4  Bb3  G5  A5\n;;note-numbers: 1   2   3   4    5   6   7   8   9   10   11  12\n;;x-chord-1: D4 A4 D5\n;;x-chord-2: F4 C5 F5\n;;x-chord-3: G4 D5 G5\n\nC: ||| 1   e   &   || 2   e   &   || 3   &   || 4   &   || 5   &   |||\nR: ||| c1  -   3   || T   -   6   || c2  -   || 3   -   || c1  -   |||\nL: ||| -   3   -   || -   •   -   || -   •   || -   •   || -   3   |||` },
+`// HAT v1.3.4 reference — always updated to latest spec version\n;;HAT v1.3.4\n;;title: Bulería\n;;time: 12/8\n;;grid: 8th\n;;subdivision: 3+3+2+2+2\n;;tuning: D Kurd\n;;notes:        D4  F4  A4  Bb4 C5  D5  F5  G4  E4  Bb3 G5  A5\n;;note-numbers: 1   2   3   4   5   6   7   8   9   10  11  12\n;;x-chord-1: D4 A4 D5\n;;x-chord-2: F4 C5 F5\n;;x-chord-3: G4 D5 G5\n\nC: ||| 1   e   &   || 2   e   &   || 3   &   || 4   &   || 5   &   |||\nR: ||| c1  -   3   || T   -   6   || c2  -   || 3   -   || c1  -   |||\nL: ||| -   3   -   || -   •   -   || -   •   || -   •   || -   3   |||` },
 ];
 
 // ─────────────────────────────────────────────
