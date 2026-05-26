@@ -359,6 +359,67 @@ test('spec Bulería parse', () => {
   eq(r.meta.subdivision, '3+3+2+2+2');
 });
 
+// ── Subdivision sync (;;subdivision: ↔ || separators) ────────────────────
+
+test(';;subdivision: sets beatStart from groups', () => {
+  // 6 cols, subdivision 2+3+1 → beats at cols 0, 2, 5
+  const src = ';;HAT v1.3.4\n;;subdivision: 2+3+1\n\nR: ||| D - D T K D |||\nL: ||| - - - - - - |||';
+  const r = parseHAT(src);
+  assert(r.ok, r.error);
+  const cols = r.sections[0].bars[0].cols;
+  eq(cols.length, 6);
+  eq(cols[0].beatStart, false, 'col 0: first beat, not beatStart');
+  eq(cols[1].beatStart, false, 'col 1');
+  eq(cols[2].beatStart, true,  'col 2: start of beat 2');
+  eq(cols[3].beatStart, false, 'col 3');
+  eq(cols[4].beatStart, false, 'col 4');
+  eq(cols[5].beatStart, true,  'col 5: start of beat 3');
+});
+
+test(';;subdivision: overrides || placement from tablature', () => {
+  // Tablature has || at col 3, but subdivision 2+4 says beats at col 0 and 2
+  const src = ';;HAT v1.3.4\n;;subdivision: 2+4\n\nR: ||| D - || D T K D |||\nL: ||| - - || - - - - |||';
+  const r = parseHAT(src);
+  assert(r.ok, r.error);
+  const cols = r.sections[0].bars[0].cols;
+  eq(cols.length, 6);
+  eq(cols[2].beatStart, true,  'col 2: beat from subdivision (overrides tablature ||)');
+  eq(cols[3].beatStart, false, 'col 3: not a beat according to subdivision');
+});
+
+test(';;subdivision: auto-generates count tokens when no C: line', () => {
+  const src = ';;HAT v1.3.4\n;;subdivision: 3+2+1\n\nR: ||| D T K D T D |||\nL: ||| - - - - - - |||';
+  const r = parseHAT(src);
+  assert(r.ok, r.error);
+  const toks = r.sections[0].bars[0].cols.map(c => c.countTok);
+  // Beat 1 (3 cols): 1, e, &  — Beat 2 (2 cols): 2, &  — Beat 3 (1 col): 3
+  eq(toks, ['1','e','&','2','&','3']);
+});
+
+test(';;subdivision: does NOT overwrite existing count tokens from C: line', () => {
+  // C: line explicitly sets tokens 3, &, 7, a — different from what applySubdivision
+  // would generate (1, &, 2, &). The explicit C: should win.
+  const src = ';;HAT v1.3.4\n;;subdivision: 2+2\n\nC: ||| 3 & || 7 a |||\nR: ||| D - || T - |||\nL: ||| - K || - K |||';
+  const r = parseHAT(src);
+  assert(r.ok, r.error);
+  const toks = r.sections[0].bars[0].cols.map(c => c.countTok);
+  eq(toks, ['3','&','7','a']);
+});
+
+test('serializer pads count tokens to 3 chars (aligns with cells)', () => {
+  const src = ';;HAT v1.3.4\n;;subdivision: 2+2\n\nR: ||| D - || T - |||\nL: ||| - K || - K |||';
+  const r = parseHAT(src);
+  assert(r.ok, r.error);
+  const out = serializeHAT(r.meta, r.sections);
+  // C: line should have 3-char padded tokens: '1  ', '&  ', '2  ', '&  '
+  assert(out.includes('C:'), 'should emit C: line');
+  const cLine = out.split('\n').find(l => l.startsWith('C:'));
+  const rLine = out.split('\n').find(l => l.startsWith('R:'));
+  assert(cLine && rLine, 'both C: and R: must be present');
+  // Token positions should align: find index of first 'D' in R and first count token in C
+  eq(cLine.length, rLine.length, 'C: and R: lines must have equal length');
+});
+
 // ── Extension metadata preserved ──────────────────────────────────────────
 
 test('x-author stored in meta', () => {

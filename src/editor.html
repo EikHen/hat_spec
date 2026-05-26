@@ -100,7 +100,8 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
 #card-head { padding: 8px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: baseline; gap: 10px; }
 #card-title { font-size: 16px; font-weight: 700; }
 #card-meta { color: var(--fg3); font-size: 11px; }
-#edit-toolbar { display: flex; gap: 6px; padding: 6px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; align-items: center; }
+#action-bar { display: flex; gap: 6px; padding: 5px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; align-items: center; }
+#edit-toolbar { display: flex; gap: 6px; padding: 5px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; align-items: center; }
 .key-hint { font-size: 11px; color: var(--fg2); }
 .key-hint kbd { background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px; font: inherit; }
 
@@ -331,6 +332,10 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
       <span id="card-meta"></span>
     </div>
 
+    <div id="action-bar">
+      <button id="btn-add-section">+ Section</button>
+    </div>
+
     <div id="edit-toolbar">
       <span class="key-hint"><kbd>D</kbd> Doum</span>
       <span class="key-hint"><kbd>T</kbd> Tak-R</span>
@@ -348,8 +353,6 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
       <span class="key-hint"><kbd>x</kbd> del col</span>
       <span class="key-hint"><kbd>I</kbd> | toggle</span>
       <span class="key-hint"><kbd>B</kbd> || toggle</span>
-      <div class="tb-sep"></div>
-      <button id="btn-add-section">+ Section</button>
       <div class="tb-sep"></div>
       <span class="key-hint"><kbd>click bar#</kbd> select</span>
       <span class="key-hint"><kbd>Ctrl+C/V</kbd> copy/paste</span>
@@ -490,6 +493,12 @@ function parseHAT(text) {
         colCoords.push({sec:si,bar:bi,col:ci});
       }
   }
+  // Apply ;;subdivision: if present — overrides || placement from tablature text
+  if (meta.subdivision) {
+    const grps = meta.subdivision.split('+').map(Number);
+    if (grps.every(n=>Number.isFinite(n)&&n>0)) applySubdivision(parsedSections, grps);
+  }
+
   return { ok:true, meta, version134, sections:parsedSections, cols:allCols, colCoords };
 }
 
@@ -648,7 +657,7 @@ function serializeHAT(meta, sections) {
           if (col.sub&&rSg[rSg.length-1].length>0) { rSg.push([]); lSg.push([]); cSg.push([]); }
           rSg[rSg.length-1].push(fmtCell(col.R));
           lSg[lSg.length-1].push(fmtCell(col.L));
-          cSg[cSg.length-1].push(col.countTok||'·');
+          cSg[cSg.length-1].push((col.countTok||'·').padEnd(3));
         }
         rBeat.push(rSg.map(g=>g.join(' ')).join(' | '));
         lBeat.push(lSg.map(g=>g.join(' ')).join(' | '));
@@ -665,6 +674,45 @@ function serializeHAT(meta, sections) {
   return lines.join('\n');
 }
 function fmtCell(c) { if (!c||c.hit==='-') return '-  '; return (c.hit+(c.mod||'')).padEnd(3); }
+
+// ─────────────────────────────────────────────
+//  SUBDIVISION  (;;subdivision: ↔ visual || sync)
+// ─────────────────────────────────────────────
+
+// Count syllables within a beat of N cols:
+// N=1: [beatNum]  N=2: [beatNum, '&']  N≥3: [beatNum, 'e', '&', 'a', 'e', '&', 'a', …]
+function subdivCountToks(beatNum, n) {
+  const res = [String(beatNum)];
+  if (n < 2) return res;
+  if (n === 2) { res.push('&'); return res; }
+  const cycle = ['e','&','a'];
+  for (let i=0;i<n-1;i++) res.push(cycle[i%3]);
+  return res;
+}
+
+// Apply a subdivision pattern (array of col-counts per beat) to parsed sections.
+// Sets beatStart on every col.
+// Auto-generates countToks only when ALL cols in the bar currently have countTok===null.
+function applySubdivision(sections, groups) {
+  if (!groups || !groups.length || groups.some(n=>!(n>0))) return;
+  const barSize = groups.reduce((a,b)=>a+b, 0);
+  for (const sec of sections) {
+    for (const bar of sec.bars) {
+      if (bar.cols.length !== barSize) continue;
+      const noCountSet = bar.cols.every(c=>!c.countTok);
+      let pos=0;
+      for (let gi=0;gi<groups.length;gi++) {
+        const toks = noCountSet ? subdivCountToks(gi+1, groups[gi]) : null;
+        for (let i=0;i<groups[gi];i++) {
+          const col=bar.cols[pos];
+          col.beatStart = (gi>0 && i===0);
+          if (toks) col.countTok = toks[i]||null;
+          pos++;
+        }
+      }
+    }
+  }
+}
 
 // ─────────────────────────────────────────────
 //  BUILT-IN PATTERNS
@@ -1185,12 +1233,28 @@ function toggleSubdiv(sec,bar,col) {
   syncSourceFromModel(); renderGrid(state.parsed);
 }
 
+// Recompute ;;subdivision: from the current beat structure of the first bar
+function updateSubdivisionMeta() {
+  const bar=state.parsed?.sections?.[0]?.bars?.[0];
+  if (!bar?.cols?.length) return;
+  const groups=[];
+  let count=0;
+  for (let i=0;i<bar.cols.length;i++) {
+    if (i>0&&bar.cols[i].beatStart) { groups.push(count); count=0; }
+    count++;
+  }
+  groups.push(count);
+  if (groups.length>1) state.parsed.meta.subdivision=groups.join('+');
+  else delete state.parsed.meta.subdivision;
+}
+
 function toggleBeat(sec,bar,col) {
   if (col===0) return; // bar boundary, never toggleable
   pushUndo();
   const c=getColObj(sec,bar,col);
   c.beatStart=!c.beatStart;
   if (c.beatStart) c.sub=false; // beat takes priority over visual sub-group
+  updateSubdivisionMeta();
   syncSourceFromModel(); renderGrid(state.parsed);
 }
 
@@ -1491,9 +1555,30 @@ document.getElementById('btn-note-mode').onclick=()=>{
 document.getElementById('btn-add-section').onclick=()=>{
   if (!state.parsed?.ok) return;
   const label=window.prompt('Section name:','');
-  if (label===null) return; // cancelled
+  if (label===null) return;
   pushUndo();
-  state.parsed.sections.push({label:label.trim(),bars:[{cols:[{R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null}]}]});
+
+  // Determine split point: hovered bar or first selected bar
+  let splitSec=-1, splitBar=-1;
+  if (_hovered) { splitSec=_hovered.sec; splitBar=_hovered.bar; }
+  else if (_selBars.size>0) {
+    const key=[..._selBars].sort()[0]; [splitSec,splitBar]=key.split('-').map(Number);
+  }
+
+  if (splitSec>=0 && splitBar>0) {
+    // Split: bars[splitBar..] become the new section
+    const sec=state.parsed.sections[splitSec];
+    const newBars=sec.bars.splice(splitBar);
+    state.parsed.sections.splice(splitSec+1,0,{label:label.trim(),bars:newBars});
+  } else if (splitSec>=0 && splitBar===0) {
+    // Hovered first bar of a section: insert a new empty section before
+    const empty={R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null};
+    state.parsed.sections.splice(splitSec,0,{label:label.trim(),bars:[{cols:[empty]}]});
+  } else {
+    // No context: append a new empty section at the end
+    const empty={R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null};
+    state.parsed.sections.push({label:label.trim(),bars:[{cols:[empty]}]});
+  }
   syncSourceFromModel(); renderGrid(state.parsed);
 };
 
