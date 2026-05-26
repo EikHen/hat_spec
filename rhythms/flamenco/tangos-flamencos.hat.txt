@@ -1,6 +1,7 @@
+;;HAT v1.3.4
 ;;title: Tangos Flamencos
 ;;time: 4/4
 ;;grid: 8th
 
-R: || •  | -  | D  | -  | •  | -  | D  | -  ||
-L: || -  | K  | -  | K  | -  | K  | -  | K  ||
+R: ||| •   | -   | D   | -   | •   | -   | D   | -   |||
+L: ||| -   | K   | -   | K   | -   | K   | -   | K   |||

@@ -297,6 +297,64 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+
+/* ── Category pills — rounded ── */
+.cat-pill { border-radius: 10px !important; }
+
+/* ── Sidebar pattern cards ── */
+.pat-item { padding: 6px 10px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 12px; position: relative; }
+.pat-item:hover { background: var(--bg3); }
+.pat-item.active { background: var(--Rbg); color: var(--R); }
+.pat-item .pat-name { font-size: 12px; }
+.pat-item .pat-meta { color: var(--fg3); font-size: 10px; margin-top: 1px; }
+.pat-badge { font-size: 9px; background: var(--bg4); border: 1px solid var(--border); border-radius: 8px; padding: 0 5px; color: var(--fg2); margin-left: 4px; vertical-align: middle; }
+.pat-badge.edited { color: #ffc050; border-color: #8a6020; }
+.pat-badge.custom { color: var(--accent); border-color: var(--accent); }
+.pat-del-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: 1px solid transparent; border-radius: 3px; color: var(--fg3); font-size: 11px; padding: 1px 5px; cursor: pointer; line-height: 1; }
+.pat-del-btn:hover { border-color: #f06060; color: #f06060; background: rgba(240,96,96,0.1); }
+
+/* ── Source panel collapse ── */
+#source-wrap.collapsed { height: 28px !important; overflow: hidden; }
+#source-wrap.collapsed #source { display: none; }
+#source-toggle { background: none; border: none; color: var(--fg3); cursor: pointer; font: inherit; font-size: 11px; padding: 0 6px; }
+#source-toggle:hover { color: var(--fg2); }
+
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: 52px; left: 50%; transform: translateX(-50%) translateY(8px);
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 16px;
+  color: var(--fg2); padding: 6px 16px; font-size: 12px;
+  opacity: 0; transition: opacity 0.18s, transform 0.18s; pointer-events: none;
+  white-space: nowrap; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+#toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Shortcut panel ── */
+#shortcut-panel {
+  position: fixed; right: 12px; top: 44px; bottom: 12px;
+  width: 300px; max-width: calc(100vw - 24px);
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 5000;
+  display: none; flex-direction: column; overflow: hidden;
+}
+#shortcut-panel.open { display: flex; }
+#sc-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#sc-header h2 { font-size: 13px; font-weight: 700; color: var(--accent); margin: 0; }
+#sc-close { background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--fg3); cursor: pointer; font: inherit; font-size: 11px; padding: 1px 7px; }
+#sc-close:hover { color: var(--fg2); border-color: var(--fg2); }
+#sc-body { flex: 1; overflow-y: auto; padding: 10px 14px 14px; }
+.sc-section { margin-bottom: 12px; }
+.sc-heading { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 5px; font-weight: 700; }
+.sc-row { font-size: 11px; color: var(--fg2); line-height: 1.8; display: flex; align-items: baseline; gap: 6px; }
+.sc-row kbd { background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; font: 10px var(--font-mono); color: var(--fg); white-space: nowrap; }
+.sc-row span { flex: 1; color: var(--fg3); }
+
+/* ── New pattern modal ── */
+#new-pat-modal { display: none; position: fixed; inset: 0; background: var(--scrim); z-index: 8000; align-items: center; justify-content: center; }
+#new-pat-modal.show { display: flex; }
+#new-pat-modal .modal { min-width: 280px; }
+#new-pat-modal .np-label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--fg2); margin-bottom: 8px; }
+#new-pat-modal .np-label input, #new-pat-modal .np-label select { background: var(--bg3); border: 1px solid var(--border); color: var(--fg); padding: 4px 7px; border-radius: 4px; font: inherit; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -366,7 +424,8 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 
     <div id="source-wrap">
       <div id="source-head">
-        Source <span id="parse-status"></span>
+        <button id="source-toggle" title="Toggle source panel">▾ Source</button>
+        <span id="parse-status"></span>
       </div>
       <textarea id="source" spellcheck="false"></textarea>
     </div>
@@ -395,6 +454,79 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
   </div>
 </div>
 
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Shortcut panel -->
+<div id="shortcut-panel">
+  <div id="sc-header"><h2>Keyboard Shortcuts</h2><button id="sc-close">✕</button></div>
+  <div id="sc-body">
+    <div class="sc-section">
+      <div class="sc-heading">Cell Editing</div>
+      <div class="sc-row"><kbd>D</kbd><span>Doum</span></div>
+      <div class="sc-row"><kbd>T</kbd><span>Tak (right hand)</span></div>
+      <div class="sc-row"><kbd>K</kbd><span>Tak (left hand)</span></div>
+      <div class="sc-row"><kbd>S</kbd><span>Slap / knock</span></div>
+      <div class="sc-row"><kbd>d</kbd><kbd>t</kbd><kbd>k</kbd><kbd>s</kbd><span>Muted variants</span></div>
+      <div class="sc-row"><kbd>.</kbd><span>Ghost note</span></div>
+      <div class="sc-row"><kbd>-</kbd><span>Rest</span></div>
+      <div class="sc-row"><kbd>*</kbd> or <kbd>^</kbd><span>Toggle flam</span></div>
+      <div class="sc-row"><kbd>click</kbd><span>Cycle hit type</span></div>
+      <div class="sc-row"><kbd>hold key + drag</kbd><span>Paint mode</span></div>
+    </div>
+    <div class="sc-section">
+      <div class="sc-heading">Notes</div>
+      <div class="sc-row"><kbd>1</kbd>–<kbd>9</kbd>, <kbd>0</kbd><span>Pick note by index</span></div>
+      <div class="sc-row"><kbd>n</kbd><span>Note picker popup</span></div>
+      <div class="sc-row"><kbd>c</kbd> + digits<span>Chord token (e.g. c1)</span></div>
+      <div class="sc-row"><kbd>c</kbd><kbd>c</kbd><span>Chord picker popup</span></div>
+    </div>
+    <div class="sc-section">
+      <div class="sc-heading">Structure</div>
+      <div class="sc-row"><kbd>i</kbd><span>Insert column before</span></div>
+      <div class="sc-row"><kbd>o</kbd><span>Insert column after</span></div>
+      <div class="sc-row"><kbd>x</kbd> / <kbd>Del</kbd><span>Delete column</span></div>
+      <div class="sc-row"><kbd>I</kbd><span>Toggle sub-group boundary |</span></div>
+      <div class="sc-row"><kbd>B</kbd><span>Toggle beat boundary ||</span></div>
+    </div>
+    <div class="sc-section">
+      <div class="sc-heading">Selection &amp; Edit</div>
+      <div class="sc-row"><kbd>click bar #</kbd><span>Select bar</span></div>
+      <div class="sc-row"><kbd>Ctrl C</kbd><span>Copy selection</span></div>
+      <div class="sc-row"><kbd>Ctrl V</kbd><span>Paste</span></div>
+      <div class="sc-row"><kbd>Del</kbd> (bar selected)<span>Delete bar(s)</span></div>
+      <div class="sc-row"><kbd>Ctrl Z</kbd><span>Undo</span></div>
+    </div>
+    <div class="sc-section">
+      <div class="sc-heading">Playback</div>
+      <div class="sc-row"><kbd>Space</kbd><span>Play / Stop</span></div>
+    </div>
+    <div class="sc-section">
+      <div class="sc-heading">Other</div>
+      <div class="sc-row"><kbd>?</kbd><span>Toggle this panel</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- New pattern modal -->
+<div id="new-pat-modal">
+  <div class="modal">
+    <h2>New Pattern</h2>
+    <label class="np-label">Title<input id="np-title" type="text" placeholder="My Pattern" maxlength="60"/></label>
+    <label class="np-label">Time signature
+      <select id="np-time"><option>4/4</option><option>3/4</option><option>5/4</option><option>6/8</option><option>7/8</option><option>12/8</option></select>
+    </label>
+    <label class="np-label">Grid
+      <select id="np-grid"><option>8th</option><option>4th</option><option>16th</option></select>
+    </label>
+    <label class="np-label">BPM<input id="np-bpm" type="number" min="40" max="240" value="120"/></label>
+    <div class="modal-btns">
+      <button id="np-cancel">Cancel</button>
+      <button id="np-ok">Create</button>
+    </div>
+  </div>
+</div>
+
 <!-- Import overlay -->
 <div id="overlay">
   <div class="modal">
@@ -407,8 +539,51 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
   </div>
 </div>
 
+<script src="../rhythms/bundle.js"></script>
 <script>
 'use strict';
+
+// ─────────────────────────────────────────────
+//  LOCAL STORAGE — custom pattern store
+// ─────────────────────────────────────────────
+
+const StorageStore = {
+  PREFIX: 'hat_pat_',
+  ACTIVE_KEY: 'hat_active_id',
+  save(id, hat, meta={}) {
+    try {
+      localStorage.setItem(this.PREFIX + id, JSON.stringify({
+        id, hat,
+        title: meta.title || 'Untitled',
+        time: meta.time || '',
+        grid: meta.grid || '',
+        updatedAt: Date.now()
+      }));
+    } catch(e) {}
+  },
+  load(id) {
+    try { const r = localStorage.getItem(this.PREFIX + id); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+  },
+  remove(id) { try { localStorage.removeItem(this.PREFIX + id); } catch(e) {} },
+  list() {
+    const items = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(this.PREFIX)) {
+          try { const v = JSON.parse(localStorage.getItem(key)); if (v) items.push(v); } catch(e) {}
+        }
+      }
+    } catch(e) {}
+    return items.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  },
+  setActive(id) { try { if (id) localStorage.setItem(this.ACTIVE_KEY, id); else localStorage.removeItem(this.ACTIVE_KEY); } catch(e) {} },
+  getActive() { try { return localStorage.getItem(this.ACTIVE_KEY); } catch(e) { return null; } }
+};
+
+function genId() {
+  try { return crypto.randomUUID(); } catch(e) { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+}
 
 // ─────────────────────────────────────────────
 //  HAT PARSER  (flat cols model, v1.3.4 + legacy)
@@ -763,6 +938,10 @@ const PATTERNS = [
 
 let state = { parsed: null, hatText: '' };
 
+// Custom pattern tracking
+let _customPatId = null;   // UUID of active custom pattern (null = viewing a bundled pattern)
+let _customPatterns = [];  // loaded from localStorage on init
+
 // Selection
 let _selBars = new Set();   // "si-bi" strings
 let _selCols = new Set();   // global col indices
@@ -779,6 +958,13 @@ let activePatIdx = -1;
 function buildSidebar() {
   const catsEl = document.getElementById('cats');
   catsEl.innerHTML = '';
+
+  // "Mine" pill for custom patterns
+  const minePill = document.createElement('span');
+  minePill.className = 'cat-pill' + (activeCat === '__custom' ? ' active' : '');
+  minePill.textContent = 'Mine';
+  minePill.onclick = () => setCat('__custom', minePill);
+  catsEl.appendChild(minePill);
 
   const allPill = document.createElement('span');
   allPill.className = 'cat-pill' + (activeCat === null ? ' active' : '');
@@ -809,22 +995,65 @@ function renderPatternList() {
   const listEl = document.getElementById('pattern-list');
   const q = document.getElementById('search').value.toLowerCase();
   listEl.innerHTML = '';
+
+  // Custom patterns first (when "Mine" or "All")
+  if (activeCat === null || activeCat === '__custom') {
+    _customPatterns.forEach(cp => {
+      if (q && !cp.title.toLowerCase().includes(q)) return;
+      const isActive = cp.id === _customPatId;
+      const item = document.createElement('div');
+      item.className = 'pat-item' + (isActive ? ' active' : '');
+      item.innerHTML = `<div class="pat-name">${escHtml(cp.title)}<span class="pat-badge custom">custom</span></div><div class="pat-meta">${escHtml(cp.time||'')}${cp.grid?' · '+escHtml(cp.grid):''}</div>`;
+      item.onclick = () => loadCustomPattern(cp.id);
+      const del = document.createElement('button');
+      del.className = 'pat-del-btn'; del.textContent = '×'; del.title = 'Delete pattern';
+      del.onclick = e => { e.stopPropagation(); deleteCustomPattern(cp.id); };
+      item.appendChild(del);
+      listEl.appendChild(item);
+    });
+  }
+
+  if (activeCat === '__custom') return;
+
   PATTERNS.forEach((p, i) => {
     if (activeCat && p.cat !== activeCat) return;
     if (q && !p.name.toLowerCase().includes(q) && !p.cat.toLowerCase().includes(q)) return;
     const item = document.createElement('div');
     item.className = 'pat-item' + (i === activePatIdx ? ' active' : '');
-    item.innerHTML = `<div>${p.name}</div><div class="pat-meta">${p.cat} · ${p.time} · ${p.grid}</div>`;
+    item.innerHTML = `<div class="pat-name">${escHtml(p.name)}</div><div class="pat-meta">${escHtml(p.cat)} · ${escHtml(p.time)} · ${escHtml(p.grid)}</div>`;
     item.onclick = () => loadPattern(i);
     listEl.appendChild(item);
   });
 }
 
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function loadPattern(idx) {
   activePatIdx = idx;
+  _customPatId = null;
+  StorageStore.setActive(null);
   const p = PATTERNS[idx];
   loadHAT(p.hat);
   renderPatternList();
+}
+
+function loadCustomPattern(id) {
+  const cp = StorageStore.load(id);
+  if (!cp) return;
+  activePatIdx = -1;
+  _customPatId = id;
+  StorageStore.setActive(id);
+  loadHAT(cp.hat);
+  renderPatternList();
+}
+
+function deleteCustomPattern(id) {
+  if (!confirm('Delete this custom pattern?')) return;
+  StorageStore.remove(id);
+  _customPatterns = _customPatterns.filter(p => p.id !== id);
+  if (_customPatId === id) { _customPatId = null; StorageStore.setActive(null); }
+  renderPatternList();
+  showToast('Pattern deleted');
 }
 
 
@@ -939,7 +1168,7 @@ function renderGrid(parsed) {
       const cpBtn=document.createElement('span');
       cpBtn.textContent=' ⧉'; cpBtn.style.cssText='font-size:9px;color:var(--fg3);cursor:pointer;';
       cpBtn.title='Copy this bar';
-      cpBtn.onclick=e=>{e.stopPropagation();_copiedBars=[cloneBar(sec.bars[bi])];_copiedCols=null;setStatus('Bar copied — Ctrl+V to paste');};
+      cpBtn.onclick=e=>{e.stopPropagation();_copiedBars=[cloneBar(sec.bars[bi])];_copiedCols=null;showToast('Bar copied — Ctrl+V to paste');};
       barNum.appendChild(cpBtn);
       barBlock.appendChild(barNum);
 
@@ -1086,17 +1315,17 @@ function copySelected() {
       const [si,bi]=key.split('-').map(Number);
       return cloneBar(state.parsed.sections[si].bars[bi]);
     });
-    _copiedCols=null; setStatus(`${_copiedBars.length} bar(s) copied — Ctrl+V to paste`);
+    _copiedCols=null; showToast(`${_copiedBars.length} bar(s) copied — Ctrl+V to paste`);
   } else if (_selCols.size>0) {
     const sorted=[..._selCols].sort((a,b)=>a-b);
     _copiedCols=sorted.map(fi=>{
       const coord=state.parsed.colCoords[fi]; if(!coord) return null;
       return cloneCol(state.parsed.sections[coord.sec].bars[coord.bar].cols[coord.col]);
     }).filter(Boolean);
-    _copiedBars=null; setStatus(`${_copiedCols.length} col(s) copied — Ctrl+V to paste`);
+    _copiedBars=null; showToast(`${_copiedCols.length} col(s) copied — Ctrl+V to paste`);
   } else if (_hovered) {
     _copiedBars=[cloneBar(state.parsed.sections[_hovered.sec].bars[_hovered.bar])];
-    _copiedCols=null; setStatus('Bar copied — Ctrl+V to paste');
+    _copiedCols=null; showToast('Bar copied — Ctrl+V to paste');
   }
 }
 
@@ -1109,14 +1338,14 @@ function pasteSelected() {
     pushUndo();
     state.parsed.sections[si].bars.splice(bi+1,0,..._copiedBars.map(cloneBar));
     syncSourceFromModel(); renderGrid(state.parsed);
-    setStatus(`${_copiedBars.length} bar(s) pasted`);
+    showToast(`${_copiedBars.length} bar(s) pasted`);
   } else if (_copiedCols?.length&&_hovered) {
     const {sec,bar,col}=_hovered;
     const bc=state.parsed.sections[sec].bars[bar].cols;
     pushUndo();
     _copiedCols.forEach((cc,i)=>{const ci=col+i;if(ci<bc.length){bc[ci].R={...cc.R};bc[ci].L={...cc.L};}});
     syncSourceFromModel(); renderGrid(state.parsed);
-    setStatus(`${_copiedCols.length} col(s) pasted`);
+    showToast(`${_copiedCols.length} col(s) pasted`);
   }
 }
 
@@ -1255,6 +1484,8 @@ function syncSourceFromModel() {
   if (_hovered) _hovered = {sec:_hovered.sec, bar:_hovered.bar, col:_hovered.col, hand:_hovered.hand, el:null};
   const text=serializeHAT(state.parsed.meta,state.parsed.sections);
   document.getElementById('source').value=text; state.hatText=text;
+  // Auto-save custom patterns on every edit
+  if (_customPatId) { StorageStore.save(_customPatId, text, state.parsed.meta); _customPatterns=StorageStore.list(); }
   // Keep card-meta in sync with model (reparse() also does this but isn't called on visual edits)
   const m=state.parsed.meta;
   document.getElementById('card-title').textContent=m.title||'Untitled';
@@ -1481,6 +1712,15 @@ document.getElementById('grid-scroll').addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{
   const inInput=['TEXTAREA','INPUT'].includes(document.activeElement.tagName);
 
+  // ? = shortcut panel toggle
+  if (!inInput&&e.key==='?'){ e.preventDefault(); document.getElementById('shortcut-panel').classList.toggle('open'); return; }
+
+  // Escape = close panels
+  if (e.key==='Escape') {
+    document.getElementById('shortcut-panel').classList.remove('open');
+    return;
+  }
+
   // Space = play/pause
   if (!inInput&&e.key===' '){ e.preventDefault(); _playing?stopPlayback():startPlayback(); return; }
 
@@ -1590,6 +1830,15 @@ document.getElementById('notes-overlay').onclick=e=>{
 
 function setStatus(msg) { document.getElementById('status').textContent=msg; }
 
+let _toastTimer = null;
+function showToast(msg, ms=2200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('visible');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('visible'), ms);
+}
+
 document.getElementById('btn-note-mode').onclick=()=>{
   _showNoteNums=!_showNoteNums;
   const btn=document.getElementById('btn-note-mode');
@@ -1628,8 +1877,31 @@ document.getElementById('btn-add-section').onclick=()=>{
 };
 
 document.getElementById('btn-new').onclick=()=>{
-  loadHAT(';;HAT v1.3.4\n;;title: Untitled\n;;time: 4/4\n;;grid: 8th\n\nR: ||| D   -   || T   -   || D   -   || T   -   |||\nL: ||| -   •   || -   •   || -   •   || -   •   |||');
-  activePatIdx=-1; renderPatternList();
+  document.getElementById('np-title').value='';
+  document.getElementById('np-time').value='4/4';
+  document.getElementById('np-grid').value='8th';
+  document.getElementById('np-bpm').value='120';
+  document.getElementById('new-pat-modal').classList.add('show');
+  document.getElementById('np-title').focus();
+};
+document.getElementById('np-cancel').onclick=()=>document.getElementById('new-pat-modal').classList.remove('show');
+document.getElementById('np-ok').onclick=()=>{
+  const title=document.getElementById('np-title').value.trim()||'Untitled';
+  const time=document.getElementById('np-time').value;
+  const grid=document.getElementById('np-grid').value;
+  const bpm=document.getElementById('np-bpm').value;
+  const id=genId();
+  const hat=`;;HAT v1.3.4\n;;title: ${title}\n;;time: ${time}\n;;grid: ${grid}\n;;tempo: ${bpm}\n\nR: ||| -   -   || -   -   || -   -   || -   -   |||\nL: ||| -   -   || -   -   || -   -   || -   -   |||`;
+  StorageStore.save(id, hat, {title, time, grid});
+  _customPatterns = StorageStore.list();
+  activePatIdx=-1; _customPatId=id; StorageStore.setActive(id);
+  loadHAT(hat);
+  document.getElementById('new-pat-modal').classList.remove('show');
+  renderPatternList();
+  showToast(`Created "${title}"`);
+};
+document.getElementById('new-pat-modal').onclick=e=>{
+  if(e.target===document.getElementById('new-pat-modal')) document.getElementById('new-pat-modal').classList.remove('show');
 };
 document.getElementById('btn-import').onclick=()=>{
   document.getElementById('overlay').classList.add('show');
@@ -1645,7 +1917,17 @@ document.getElementById('btn-export').onclick=()=>{
 document.getElementById('import-cancel').onclick=()=>document.getElementById('overlay').classList.remove('show');
 document.getElementById('import-ok').onclick=()=>{
   const t=document.getElementById('import-text').value.trim();
-  if (t){loadHAT(t);activePatIdx=-1;renderPatternList();}
+  if (t) {
+    const id=genId();
+    const parsed=parseHAT(t);
+    const meta=parsed.ok?parsed.meta:{};
+    StorageStore.save(id, t, meta);
+    _customPatterns=StorageStore.list();
+    activePatIdx=-1; _customPatId=id; StorageStore.setActive(id);
+    loadHAT(t);
+    renderPatternList();
+    showToast('Pattern imported');
+  }
   document.getElementById('overlay').classList.remove('show');
 };
 document.getElementById('overlay').onclick=e=>{
@@ -1673,8 +1955,28 @@ function getNoiseBuf(actx) {
   return (_noiseBuf=buf);
 }
 
-function playHit(actx, t, hit) {
+// Standard pitch name → Hz (C4=261.63, A4=440)
+const _NOTE_SEMI = {C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
+function noteToHz(name) {
+  const m = name.match(/^([A-G][b#]?)(-?\d+)$/);
+  if (!m) return 440;
+  const semi = _NOTE_SEMI[m[1]];
+  if (semi === undefined) return 440;
+  const midi = 12 * (parseInt(m[2], 10) + 1) + semi;
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function playHit(actx, t, hit, _scale=1) {
   if (!hit||hit==='-') return;
+  // Chord token: c1, c2, … → look up ;;x-chord-N: and play each note scaled down
+  if (/^c\d+$/.test(hit)) {
+    const def = state.parsed?.meta?.[`x-chord-${hit.slice(1)}`];
+    if (def) {
+      const notes = def.trim().split(/\s+/);
+      notes.forEach(n => playHit(actx, t, n, _scale / notes.length));
+    }
+    return;
+  }
   const nb=getNoiseBuf(actx);
 
   function noise(t2,dur,bpFreq,bpQ,vol,hpFreq) {
@@ -1682,7 +1984,7 @@ function playHit(actx, t, hit) {
     const filt=actx.createBiquadFilter();
     if (bpFreq) { filt.type='bandpass'; filt.frequency.value=bpFreq; filt.Q.value=bpQ||1; }
     else { filt.type='highpass'; filt.frequency.value=hpFreq||200; }
-    const g=actx.createGain(); g.gain.setValueAtTime(vol,t2); g.gain.exponentialRampToValueAtTime(0.001,t2+dur);
+    const g=actx.createGain(); g.gain.setValueAtTime(vol*_scale,t2); g.gain.exponentialRampToValueAtTime(0.001,t2+dur);
     src.connect(filt); filt.connect(g); g.connect(actx.destination); src.start(t2); src.stop(t2+dur+0.01);
   }
 
@@ -1690,13 +1992,13 @@ function playHit(actx, t, hit) {
     const osc=actx.createOscillator(); osc.type=type;
     if (pitchDrop){ osc.frequency.setValueAtTime(freq*1.6,t2); osc.frequency.exponentialRampToValueAtTime(freq,t2+0.08); }
     else osc.frequency.value=freq;
-    const g=actx.createGain(); g.gain.setValueAtTime(vol,t2); g.gain.exponentialRampToValueAtTime(0.001,t2+dur);
+    const g=actx.createGain(); g.gain.setValueAtTime(vol*_scale,t2); g.gain.exponentialRampToValueAtTime(0.001,t2+dur);
     osc.connect(g); g.connect(actx.destination); osc.start(t2); osc.stop(t2+dur+0.01);
   }
 
   switch(hit) {
-    case 'D': tone(t,78,'sine',0.85,1.1,true);  noise(t,0.025,0,0,0.38,220); break;
-    case 'd': tone(t,78,'sine',0.42,0.20,true);  noise(t,0.012,0,0,0.16,220); break;
+    case 'D': tone(t,92,'sine',0.60,0.75,true);  noise(t,0.028,0,0,0.30,280); break;
+    case 'd': tone(t,92,'sine',0.28,0.15,true);  noise(t,0.012,0,0,0.12,280); break;
     case 'T': noise(t,0.15,870,5.5,0.60); tone(t,520,'sine',0.22,0.035); break;
     case 't': noise(t,0.06,870,5.5,0.28); tone(t,520,'sine',0.10,0.018); break;
     case 'K': noise(t,0.14,640,4.5,0.58); tone(t,370,'sine',0.19,0.035); break;
@@ -1704,7 +2006,16 @@ function playHit(actx, t, hit) {
     case 'S': noise(t,0.10,0,0,0.52,1500); tone(t,310,'sawtooth',0.16,0.030); break;
     case 's': noise(t,0.04,0,0,0.22,1500); break;
     case '•': noise(t,0.07,730,6,0.09); break;
-    default:  tone(t,300,'sine',0.22,0.3); break;
+    default: { // named note — additive synthesis, warm handpan bell
+      const freq = noteToHz(hit);
+      const dur = 2.0;
+      // Fundamental decays slowest; upper partials fade faster (natural timbre)
+      tone(t, freq,       'sine', 0.50, dur);
+      tone(t, freq * 2.0, 'sine', 0.16, dur * 0.55);
+      tone(t, freq * 3.0, 'sine', 0.06, dur * 0.35);
+      noise(t, 0.018, 0, 0, 0.08, 900); // soft mallet click
+      break;
+    }
   }
 }
 
@@ -1740,7 +2051,8 @@ function animatePlayhead() {
   if (_actx&&state.parsed?.cols?.length) {
     const step=gridStepSec(), n=state.parsed.cols.length;
     const startTime=_nextStepTime-_stepIdx*step;
-    const cur=Math.floor((_actx.currentTime-startTime)/step)%n;
+    const latency=(_actx.outputLatency||0)+(_actx.baseLatency||0);
+    const cur=Math.floor((_actx.currentTime-latency-startTime)/step)%n;
     if (cur>=0&&cur<n) highlightCol(cur);
   }
   _phRaf=requestAnimationFrame(animatePlayhead);
@@ -1783,30 +2095,68 @@ document.getElementById('tap-btn').onclick=()=>{
 //  INIT
 // ─────────────────────────────────────────────
 
-document.getElementById('search').addEventListener('input', renderPatternList);
-buildSidebar();
-loadPattern(0);
+// Shortcut panel
+document.getElementById('sc-close').onclick=()=>document.getElementById('shortcut-panel').classList.remove('open');
 
-(async () => {
-  try {
-    const resp = await fetch('../rhythms/index.json');
-    if (!resp.ok) return;
-    const index = await resp.json();
-    const results = await Promise.allSettled(
-      index.map(async entry => {
-        const r = await fetch(`../rhythms/${entry.file}`);
-        if (!r.ok) throw new Error();
-        const hat = await r.text();
-        return { cat: entry.cat, name: entry.name, time: entry.time, grid: entry.grid, hat };
-      })
-    );
-    let added = 0;
-    for (const result of results) {
-      if (result.status === 'fulfilled') { PATTERNS.push(result.value); added++; }
-    }
-    if (added > 0) buildSidebar();
-  } catch (e) { /* external library unavailable */ }
+// Source panel collapse
+(()=>{
+  const wrap=document.getElementById('source-wrap');
+  const btn=document.getElementById('source-toggle');
+  let collapsed = localStorage.getItem('hat_src_collapsed')==='1';
+  if (collapsed) { wrap.classList.add('collapsed'); btn.textContent='▸ Source'; }
+  btn.onclick=()=>{
+    collapsed=!collapsed;
+    wrap.classList.toggle('collapsed', collapsed);
+    btn.textContent=collapsed?'▸ Source':'▾ Source';
+    try { localStorage.setItem('hat_src_collapsed', collapsed?'1':'0'); } catch(e){}
+  };
 })();
+
+document.getElementById('search').addEventListener('input', renderPatternList);
+
+// Load custom patterns from localStorage
+_customPatterns = StorageStore.list();
+
+buildSidebar();
+
+// Restore last active custom pattern, else load first bundled
+const _savedId = StorageStore.getActive();
+const _savedCp = _savedId ? StorageStore.load(_savedId) : null;
+if (_savedCp) {
+  activePatIdx=-1; _customPatId=_savedId;
+  loadHAT(_savedCp.hat);
+  renderPatternList();
+} else {
+  loadPattern(0);
+}
+
+// Load rhythm library synchronously from bundle.js (works on file:// and http://).
+// Fall back to async fetch for HTTP servers where bundle.js may not be present.
+if (window.RHYTHM_LIBRARY && window.RHYTHM_LIBRARY.length) {
+  for (const p of window.RHYTHM_LIBRARY) PATTERNS.push(p);
+  buildSidebar();
+} else {
+  (async () => {
+    try {
+      const resp = await fetch('../rhythms/index.json');
+      if (!resp.ok) return;
+      const index = await resp.json();
+      const results = await Promise.allSettled(
+        index.map(async entry => {
+          const r = await fetch(`../rhythms/${entry.file}`);
+          if (!r.ok) throw new Error();
+          const hat = await r.text();
+          return { cat: entry.cat, name: entry.name, time: entry.time, grid: entry.grid, hat };
+        })
+      );
+      let added = 0;
+      for (const result of results) {
+        if (result.status === 'fulfilled') { PATTERNS.push(result.value); added++; }
+      }
+      if (added > 0) buildSidebar();
+    } catch (e) { /* external library unavailable */ }
+  })();
+}
 </script>
 </body>
 </html>

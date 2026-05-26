@@ -21,5 +21,8 @@
 !tests/extensions/*/*.json
 !rhythms/
 !rhythms/index.json
+!rhythms/bundle.js
 !rhythms/*/
 !rhythms/*/*.hat.txt
+!scripts/
+!scripts/*.mjs
