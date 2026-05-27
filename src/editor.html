@@ -1414,9 +1414,9 @@ function commitTypeBuf() {
   if (mode==='note') {
     const idx=parseInt(buf,10)-1;
     const notes=state.parsed.meta._noteNames||[];
-    if (idx>=0&&notes[idx]) { pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,notes[idx]); }
+    if (idx>=0&&notes[idx]) { pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,notes[idx]); renderGrid(state.parsed); }
   } else if (mode==='chord'&&buf) {
-    pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,'c'+buf);
+    pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,'c'+buf); renderGrid(state.parsed);
   }
 }
 
