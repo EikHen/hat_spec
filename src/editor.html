@@ -4,6 +4,39 @@
 <head>
 <meta charset="UTF-8">
 <title>HAT Editor</title>
+<!-- Apply light theme immediately in embed mode to avoid dark-theme flash -->
+<script>
+(function(){
+  if(new URLSearchParams(location.search).get('embed')==='1'){
+    const r=document.documentElement.style;
+    r.setProperty('--bg','#fbf7ee');  r.setProperty('--bg2','#fbf7ee');
+    r.setProperty('--bg3','#fdf9f0'); r.setProperty('--bg4','#f0e8d8');
+    r.setProperty('--fg','#3a3027');  r.setProperty('--fg2','#5a4d3e');
+    r.setProperty('--fg3','#948774');
+    r.setProperty('--accent','#3d7395'); r.setProperty('--border','#ddd2bd');
+    r.setProperty('--R','#2c5e7a');   r.setProperty('--Rdim','#7a98ad');  r.setProperty('--Rbg','#e3eaf2');
+    r.setProperty('--L','#8e5828');   r.setProperty('--Ldim','#c49a60');  r.setProperty('--Lbg','#f5e8d5');
+    r.setProperty('--hit-D','#2c5e7a'); r.setProperty('--hit-T','#3d7395');
+    r.setProperty('--hit-K','#8e5828'); r.setProperty('--hit-S','#c63838');
+    r.setProperty('--hit-note','#1a9966');
+    r.setProperty('--cell-rest-bg','#f0e8d8'); r.setProperty('--cell-D-bg','#e3eaf2');
+    r.setProperty('--cell-T-bg','#dce6ef');   r.setProperty('--cell-K-bg','#f5e8d5');
+    r.setProperty('--cell-S-bg','#f7e3df');   r.setProperty('--cell-ghost-bg','#f0e8d8');
+    r.setProperty('--cell-note-bg','#e6f5e0');
+    r.setProperty('--bar-bg','#f5efe3');      r.setProperty('--bar-border','#e6dcc6');
+    r.setProperty('--bar-selected-bg','#e3eaf2');
+    r.setProperty('--sep-beat','#3d7395');    r.setProperty('--sep-beat-dim','#b8ccd8');
+    r.setProperty('--sep-sub','#ddd2bd');     r.setProperty('--sep-sub-dim','#e6dcc6');
+    r.setProperty('--count-tok-fg','#2c5e7a');
+    r.setProperty('--count-tok-bg','rgba(44,94,122,0.12)');
+    r.setProperty('--col-sel-cell','rgba(61,115,149,0.15)');
+    r.setProperty('--col-sel-strip','rgba(61,115,149,0.10)');
+    r.setProperty('--scrim','rgba(60,40,20,0.55)');
+    r.setProperty('--playing','rgba(0,0,0,0.87)');
+    r.setProperty('--font-ui','Arial,"Helvetica Neue",Helvetica,sans-serif');
+  }
+})();
+</script>
 <style>
 :root {
   /* ── Surfaces ── */
@@ -66,9 +99,10 @@
 
   /* ── Typography ── */
   --font-mono: 'Menlo','Monaco','Consolas',monospace;
+  --font-ui:   var(--font-mono); /* overridable by host via hat:set-theme vars; defaults to mono */
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--fg); font: 13px/1.4 var(--font-mono); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+body { background: var(--bg); color: var(--fg); font: 13px/1.4 var(--font-ui); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
 /* ── Toolbar ── */
 #toolbar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
@@ -605,6 +639,18 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 <script src="../rhythms/bundle.js"></script>
 <script>
 'use strict';
+
+// ─────────────────────────────────────────────
+//  EMBED MODE — postMessage bridge
+// ─────────────────────────────────────────────
+
+const EMBED_MODE = (window.parent !== window) ||
+  (new URLSearchParams(location.search).get('embed') === '1');
+
+function _postToHost(msg) {
+  if (!EMBED_MODE) return;
+  window.parent.postMessage({ version: 1, ...msg }, '*');
+}
 
 // ─────────────────────────────────────────────
 //  LOCAL STORAGE — custom pattern store
@@ -1460,7 +1506,7 @@ function deleteCustomPattern(id) {
 //  LOAD / RENDER
 // ─────────────────────────────────────────────
 
-function loadHAT(text) { state.hatText=text; document.getElementById('source').value=text; reparse(); }
+function loadHAT(text) { state.hatText=text; document.getElementById('source').value=text; reparse(); _emitPatternChanged(); }
 
 function reparse() {
   // Clear stale hover/selection refs — DOM will be rebuilt
@@ -1679,8 +1725,8 @@ function renderGrid(parsed) {
     wrap.appendChild(secDiv);
   }
   gridScroll.scrollTop=savedScrollTop; gridScroll.scrollLeft=savedScrollLeft;
-  // Restore hover element ref after DOM rebuild (preserves keyboard targeting)
-  if (_hovered && _hovered.el === null) {
+  // Restore hover element ref after DOM rebuild (handles null and detached elements)
+  if (_hovered && (!_hovered.el || !_hovered.el.isConnected)) {
     const el = wrap.querySelector(`.hat-cell[data-sec="${_hovered.sec}"][data-bar="${_hovered.bar}"][data-col="${_hovered.col}"][data-hand="${_hovered.hand}"]`);
     if (el) { _hovered.el = el; el.classList.add('hovered'); } else _hovered = null;
   }
@@ -1785,9 +1831,9 @@ function commitTypeBuf() {
   if (mode==='note') {
     const idx=parseInt(buf,10)-1;
     const notes=state.parsed.meta._noteNames||[];
-    if (idx>=0&&notes[idx]) { pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,notes[idx]); }
+    if (idx>=0&&notes[idx]) { pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,notes[idx]); renderGrid(state.parsed); }
   } else if (mode==='chord'&&buf) {
-    pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,'c'+buf);
+    pushUndo(); applyHit(tgt.sec,tgt.bar,tgt.col,tgt.hand,'c'+buf); renderGrid(state.parsed);
   }
 }
 
@@ -1809,7 +1855,7 @@ function getColObj(sec,bar,col) { return state.parsed.sections[sec].bars[bar].co
 function applyHit(sec,bar,col,hand,hit) {
   const obj=getColObj(sec,bar,col);
   obj[hand]={hit,mod:obj[hand]?.mod||null};
-  syncSourceFromModel(); refreshCellEl(sec,bar,col);
+  syncSourceFromModel(); renderGrid(state.parsed);
 }
 
 function cycleCell(sec,bar,col,hand) {
@@ -1907,6 +1953,7 @@ function syncSourceFromModel() {
   document.getElementById('source').value=text; state.hatText=text;
   // Auto-save custom patterns on every edit
   if (_customPatId) { StorageStore.save(_customPatId, text, state.parsed.meta); _customPatterns=StorageStore.list(); }
+  _emitPatternChanged();
   // Keep card-meta in sync with model (reparse() also does this but isn't called on visual edits)
   const m=state.parsed.meta;
   document.getElementById('card-title').textContent=m.title||'Untitled';
@@ -2097,6 +2144,11 @@ function openChordPicker(targetEl) {
 const gridWrap=document.getElementById('grid-wrap');
 
 gridWrap.addEventListener('mouseover',e=>{
+  // In embed mode, grab keyboard focus when hovering so shortcuts work without a click first
+  if (EMBED_MODE && !['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) {
+    document.body.tabIndex = -1;
+    document.body.focus({ preventScroll: true });
+  }
   const el=e.target.closest('.hat-cell'); if (!el) return;
   if (_hovered?.el) _hovered.el.classList.remove('hovered');
   _hovered={el,sec:+el.dataset.sec,bar:+el.dataset.bar,col:+el.dataset.col,hand:el.dataset.hand};
@@ -2181,11 +2233,12 @@ document.addEventListener('keydown',e=>{
   // Direct hit key
   if (KEY_HIT[e.key]!==undefined) {
     e.preventDefault(); pushUndo();
-    applyHit(sec,bar,col,hand,KEY_HIT[e.key]); _paintKey=KEY_HIT[e.key]; return;
+    applyHit(sec,bar,col,hand,KEY_HIT[e.key]); _paintKey=KEY_HIT[e.key];
+    return;
   }
 
   switch(e.key) {
-    case '*': case '^': e.preventDefault(); pushUndo(); toggleFlam(sec,bar,col,hand); return;
+    case '*': case '^': e.preventDefault(); pushUndo(); toggleFlam(sec,bar,col,hand); renderGrid(state.parsed); return;
     case 'I': e.preventDefault(); toggleSubdiv(sec,bar,col); return;
     case 'B': e.preventDefault(); toggleBeat(sec,bar,col); return;
     case 'i': e.preventDefault(); insertColBefore(sec,bar,col); return;
@@ -2589,7 +2642,13 @@ function scheduleLoop() {
   const step=gridStepSec();
   while (_nextStepTime<actx.currentTime+LOOKAHEAD) {
     const col=cols[_stepIdx%cols.length];
-    if (col) { playHit(actx,_nextStepTime,col.R?.hit); playHit(actx,_nextStepTime,col.L?.hit); }
+    if (col) {
+      const tOffMs=(_nextStepTime-actx.currentTime)*1000;
+      const barIdx=Math.floor(_stepIdx/cols.length);
+      if (col.R?.hit && col.R.hit!=='-') _postToHost({type:'hat:hit',hand:'R',symbol:col.R.hit,isNote:col.R.hit.length>1,colIndex:_stepIdx%cols.length,barIndex:barIdx,tOffsetMs:tOffMs});
+      if (col.L?.hit && col.L.hit!=='-') _postToHost({type:'hat:hit',hand:'L',symbol:col.L.hit,isNote:col.L.hit.length>1,colIndex:_stepIdx%cols.length,barIndex:barIdx,tOffsetMs:tOffMs});
+      playHit(actx,_nextStepTime,col.R?.hit); playHit(actx,_nextStepTime,col.L?.hit);
+    }
     _nextStepTime+=step; _stepIdx++;
     if (_stepIdx>=cols.length) {
       if (!document.getElementById('loop-chk').checked){ setTimeout(stopPlayback,(_nextStepTime-actx.currentTime)*1000+100); return; }
@@ -2621,11 +2680,13 @@ function startPlayback() {
   _stepIdx=0; _nextStepTime=actx.currentTime+0.05; _playing=true;
   document.getElementById('play-btn').textContent='⏹';
   _schedTimer=setInterval(scheduleLoop,SCHED_MS); animatePlayhead();
+  _postToHost({type:'hat:playback-state',playing:true,bpm:state.parsed.meta.tempo||120,grid:state.parsed.meta.grid||'8th'});
 }
 
 function stopPlayback() {
   _playing=false; clearInterval(_schedTimer); cancelAnimationFrame(_phRaf);
   document.getElementById('play-btn').textContent='▶'; highlightCol(-1);
+  _postToHost({type:'hat:playback-state',playing:false,bpm:state.parsed?.meta?.tempo||120,grid:state.parsed?.meta?.grid||'8th'});
 }
 
 document.getElementById('play-btn').onclick=()=>_playing?stopPlayback():startPlayback();
@@ -2714,6 +2775,263 @@ if (window.RHYTHM_LIBRARY && window.RHYTHM_LIBRARY.length) {
     } catch (e) { /* external library unavailable */ }
   })();
 }
+
+// ─────────────────────────────────────────────
+//  EMBED POSTMESSAGE API
+//
+//  Load the editor in an iframe with ?embed=1 (or as a child frame).
+//  All messages are plain JS objects passed via postMessage(msg, '*').
+//
+//  ── INCOMING (host → HAT editor) ─────────────────────────────────
+//
+//  hat:set-notes   { notes: string[], noteNumbers: number[] }
+//    Set the available pitched notes for shortcut entry and display.
+//    notes        — ordered note labels, e.g. ["D4","F4","A4",…]
+//    noteNumbers  — positional numbers, e.g. [1,2,3,…]
+//    Call this whenever the host pan/scale changes.
+//
+//  hat:load-pattern  { hat: string, id?: string }
+//    Load a HAT tablature string into the editor.
+//    id  — optional pattern identifier; if provided, upserts in sidebar.
+//
+//  hat:load-library  { patterns: PatternEntry[], merge?: boolean }
+//    Inject rhythm patterns into the sidebar library.
+//    PatternEntry: { id: string, hat: string, category?: string,
+//                    name?: string, time?: string, grid?: string }
+//    merge (default true) — keep existing injected patterns.
+//
+//  hat:set-theme   { vars: { [cssVar]: string } }
+//    Override CSS custom properties inside the editor iframe.
+//    Use to match the host app's colour scheme.
+//    Recommended vars: --bg --bg2 --bg3 --bg4 --fg --fg2 --fg3
+//      --accent --border --R --Rdim --Rbg --L --Ldim --Lbg
+//      --hit-D --hit-T --hit-K --hit-S --hit-note
+//
+//  hat:ping
+//    Request an immediate hat:ready response (heartbeat / re-sync).
+//
+//  ── OUTGOING (HAT editor → host) ─────────────────────────────────
+//
+//  hat:ready   { specVersion: string }
+//    Emitted once after init, and in response to hat:ping.
+//    Host should send hat:set-notes and hat:set-theme after this.
+//
+//  hat:pattern-changed  { id: string, title: string, hat: string }
+//    Debounced (250 ms) notification on every edit.
+//    hat  — full HAT tablature string of the current pattern.
+//
+//  hat:hit  { sec, bar, col, hand, hit, note? }
+//    Fired when the user clicks or keys a note cell (for audio playback).
+//
+// ─────────────────────────────────────────────
+
+// Debounced emitter for hat:pattern-changed
+var _patChangedTimer = null; // var (not let) — avoids TDZ when called during init before this line
+function _emitPatternChanged() {
+  if (!EMBED_MODE) return;
+  clearTimeout(_patChangedTimer);
+  _patChangedTimer = setTimeout(() => {
+    const id = _customPatId || (activePatIdx >= 0 ? PATTERNS[activePatIdx]?.name || String(activePatIdx) : 'unknown');
+    const title = state.parsed?.meta?.title || 'Untitled';
+    _postToHost({ type: 'hat:pattern-changed', id, title, hat: state.hatText || '' });
+  }, 250);
+}
+
+// Injected library pattern IDs (dedup guard)
+const _injectedIds = new Set();
+
+function _handleSetNotes(msg) {
+  if (!state.parsed?.ok) return;
+  const notes = Array.isArray(msg.notes) ? msg.notes : [];
+  const nums  = Array.isArray(msg.noteNumbers) ? msg.noteNumbers : notes.map((_,i) => i+1);
+  // Store as session default for new patterns
+  _defaultNotes = notes;
+  _defaultNoteNumbers = nums;
+  // Update meta — serializer expects space-separated STRINGS, not arrays
+  state.parsed.meta.notes           = notes.join(' ');
+  state.parsed.meta['note-numbers'] = nums.join(' ');
+  // Set _noteNames / _noteMap directly so hover shortcuts work immediately
+  state.parsed.meta._noteNames = notes.slice();
+  const nm = {};
+  nums.forEach((n, i) => { if (notes[i]) nm[String(n)] = notes[i]; });
+  state.parsed.meta._noteMap = nm;
+  syncSourceFromModel();
+  renderGrid(state.parsed);
+}
+
+function _handleLoadPattern(msg) {
+  if (typeof msg.hat !== 'string') return;
+  if (msg.id) {
+    // Replace existing library entry if id matches, else add
+    const idx = PATTERNS.findIndex(p => p.id === msg.id);
+    if (idx >= 0) { PATTERNS[idx] = { ...PATTERNS[idx], hat: msg.hat, id: msg.id }; }
+    else { PATTERNS.push({ name: msg.id, hat: msg.hat, id: msg.id, cat: 'imported' }); }
+    buildSidebar();
+  }
+  loadHAT(msg.hat);
+}
+
+function _handleLoadLibrary(msg) {
+  if (!Array.isArray(msg.patterns)) return;
+  const merge = msg.merge !== false;
+  if (!merge) {
+    // Remove previously injected patterns
+    for (let i = PATTERNS.length - 1; i >= 0; i--) {
+      if (_injectedIds.has(PATTERNS[i].id)) PATTERNS.splice(i, 1);
+    }
+    _injectedIds.clear();
+  }
+  let added = 0;
+  for (const p of msg.patterns) {
+    if (!p.id || !p.hat) continue;
+    if (merge && _injectedIds.has(p.id)) continue;
+    PATTERNS.push({ name: p.id, hat: p.hat, cat: p.category || 'library', id: p.id });
+    _injectedIds.add(p.id);
+    added++;
+  }
+  if (added > 0) buildSidebar();
+}
+
+// Session-default notes (set by hat:set-notes, applied to new patterns)
+let _defaultNotes = null;
+let _defaultNoteNumbers = null;
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  HAT EDITOR — EMBED API  (postMessage protocol, version 1)
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ *  ACTIVATION
+ *    Load this file with ?embed=1, OR place it in an iframe where
+ *    window.parent !== window.  All bridge code is gated on EMBED_MODE.
+ *    The standalone editor is completely unaffected.
+ *
+ *  ── INBOUND MESSAGES  (host → HAT editor) ─────────────────────────────────
+ *
+ *  hat:set-notes
+ *    { type: 'hat:set-notes', notes: string[], noteNumbers: number[] }
+ *    Set the available pitch notes for the current session.
+ *    notes[i] ↔ noteNumbers[i]  (e.g. ["D4","G4","A4"], [1,2,3])
+ *    After this, hovering a cell and pressing the corresponding number
+ *    inserts that note.  Send on every hat:ready and whenever the pan
+ *    layout changes.
+ *
+ *  hat:load-pattern
+ *    { type: 'hat:load-pattern', hat: string, id?: string }
+ *    Replace the current grid with the given HAT notation string.
+ *    If id matches an existing library entry, that entry is updated.
+ *
+ *  hat:load-library
+ *    { type: 'hat:load-library',
+ *      patterns: Array<{ id: string, hat: string, category?: string }>,
+ *      merge?: boolean }
+ *    Inject patterns into the sidebar library.
+ *    merge=true (default) keeps existing entries; false replaces only
+ *    previously-injected entries.
+ *
+ *  hat:set-theme
+ *    { type: 'hat:set-theme', vars: Record<string, string> }
+ *    Override CSS custom properties on :root.  All vars are optional.
+ *    Common targets:
+ *      --bg --bg2 --bg3 --bg4          surface colours
+ *      --fg --fg2 --fg3                text colours
+ *      --accent  --border              accent & divider
+ *      --R --Rbg --Rdim               right-hand colours
+ *      --L --Lbg --Ldim               left-hand colours
+ *      --font-mono  --font-ui         typeface stacks
+ *    Send on every hat:ready so theme persists after iframe reload.
+ *
+ *  hat:ping
+ *    { type: 'hat:ping' }
+ *    Request an immediate hat:ready reply.  Use when the host may have
+ *    loaded before the iframe finished initialising.
+ *
+ *  ── OUTBOUND MESSAGES  (HAT editor → host) ────────────────────────────────
+ *
+ *  hat:ready
+ *    { type: 'hat:ready', specVersion: string }
+ *    Fired once at script end and again on every hat:ping.
+ *    Host MUST respond with hat:set-notes and hat:set-theme here.
+ *
+ *  hat:hit
+ *    { type: 'hat:hit', hand: 'R'|'L', symbol: string,
+ *      isNote: boolean, colIndex: number, barIndex: number,
+ *      tOffsetMs: number }
+ *    Fired by the scheduler for every hit during playback.
+ *    isNote=true when symbol is a pitch name (not D/T/K/S/•/-).
+ *    tOffsetMs: milliseconds until the hit sounds — use this for
+ *    audio lookahead to avoid scheduling jitter.
+ *
+ *  hat:playback-state
+ *    { type: 'hat:playback-state', playing: boolean,
+ *      bpm: number, grid: string }
+ *    Fired on play and on stop.
+ *
+ *  hat:pattern-changed
+ *    { type: 'hat:pattern-changed', id: string,
+ *      title: string, hat: string }
+ *    Debounced (250 ms) after every edit.
+ *    hat is the complete, serialised HAT notation string.
+ *
+ *  ── QUICK INTEGRATION EXAMPLE ─────────────────────────────────────────────
+ *
+ *    <iframe id="hat" src="editor.html?embed=1"
+ *            sandbox="allow-scripts allow-same-origin allow-downloads allow-modals">
+ *    </iframe>
+ *
+ *    const frame = document.getElementById('hat');
+ *    window.addEventListener('message', e => {
+ *      if (e.source !== frame.contentWindow) return;
+ *      if (e.data?.type === 'hat:ready') {
+ *        frame.contentWindow.postMessage({
+ *          type: 'hat:set-notes',
+ *          notes: ['D4', 'F4', 'G4', 'A4'],
+ *          noteNumbers: [1, 2, 3, 4]
+ *        }, '*');
+ *        frame.contentWindow.postMessage({
+ *          type: 'hat:set-theme',
+ *          vars: { '--bg': '#f5efe3', '--font-ui': 'Arial, sans-serif' }
+ *        }, '*');
+ *      }
+ *      if (e.data?.type === 'hat:hit' && e.data.isNote) {
+ *        setTimeout(() => playMyAudio(e.data.symbol), e.data.tOffsetMs);
+ *      }
+ *    });
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+// Incoming message dispatcher
+if (EMBED_MODE) {
+  window.addEventListener('message', (event) => {
+    if (event.source !== window.parent) return;
+    const msg = event.data;
+    if (!msg || typeof msg.type !== 'string') return;
+    switch (msg.type) {
+      case 'hat:set-notes':    _handleSetNotes(msg); break;
+      case 'hat:load-pattern': _handleLoadPattern(msg); break;
+      case 'hat:load-library': _handleLoadLibrary(msg); break;
+      case 'hat:set-theme':
+        if (msg.vars && typeof msg.vars === 'object') {
+          const root = document.documentElement;
+          for (const [k, v] of Object.entries(msg.vars)) {
+            if (typeof v === 'string') root.style.setProperty(k, v);
+          }
+        } else {
+          console.debug('hat:set-theme: no vars provided', msg);
+        }
+        break;
+      case 'hat:ping':
+        _postToHost({ type: 'hat:ready', specVersion: '1.3.4' });
+        break;
+      default:
+        console.debug('hat: unknown incoming message type', msg.type);
+    }
+  });
+}
+
+// Emit hat:ready once init is complete
+_postToHost({ type: 'hat:ready', specVersion: '1.3.4' });
 </script>
 </body>
 </html>
