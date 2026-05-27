@@ -2348,13 +2348,13 @@ document.getElementById('btn-export').onclick=()=>{
   ListStore.getAll().forEach(lst => {
     const o = document.createElement('option');
     o.value = 'list::' + lst.id;
-    o.textContent = `List: ${lst.name} (.json)`;
+    o.textContent = `List: ${lst.name} (.hatlist.json)`;
     sel.appendChild(o);
   });
   // All custom
   if (_customPatterns.length > 0) {
     const o = document.createElement('option');
-    o.value = '__custom'; o.textContent = 'All custom patterns (.json)';
+    o.value = '__custom'; o.textContent = 'All custom patterns (.hatlist.json)';
     sel.appendChild(o);
   }
   document.getElementById('export-modal').classList.add('show');
