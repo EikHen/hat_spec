@@ -2232,13 +2232,18 @@ const _injectedIds = new Set();
 function _handleSetNotes(msg) {
   if (!state.parsed?.ok) return;
   const notes = Array.isArray(msg.notes) ? msg.notes : [];
-  const nums = Array.isArray(msg.noteNumbers) ? msg.noteNumbers : notes.map((_,i) => i+1);
-  // Update meta on live model
-  state.parsed.meta.notes = notes;
-  state.parsed.meta.noteNumbers = nums;
+  const nums  = Array.isArray(msg.noteNumbers) ? msg.noteNumbers : notes.map((_,i) => i+1);
   // Store as session default for new patterns
   _defaultNotes = notes;
   _defaultNoteNumbers = nums;
+  // Update meta — serializer expects space-separated STRINGS, not arrays
+  state.parsed.meta.notes           = notes.join(' ');
+  state.parsed.meta['note-numbers'] = nums.join(' ');
+  // Set _noteNames / _noteMap directly so hover shortcuts work immediately
+  state.parsed.meta._noteNames = notes.slice();
+  const nm = {};
+  nums.forEach((n, i) => { if (notes[i]) nm[String(n)] = notes[i]; });
+  state.parsed.meta._noteMap = nm;
   syncSourceFromModel();
 }
 
@@ -2278,6 +2283,111 @@ function _handleLoadLibrary(msg) {
 // Session-default notes (set by hat:set-notes, applied to new patterns)
 let _defaultNotes = null;
 let _defaultNoteNumbers = null;
+
+/*
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  HAT EDITOR — EMBED API  (postMessage protocol, version 1)
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ *  ACTIVATION
+ *    Load this file with ?embed=1, OR place it in an iframe where
+ *    window.parent !== window.  All bridge code is gated on EMBED_MODE.
+ *    The standalone editor is completely unaffected.
+ *
+ *  ── INBOUND MESSAGES  (host → HAT editor) ─────────────────────────────────
+ *
+ *  hat:set-notes
+ *    { type: 'hat:set-notes', notes: string[], noteNumbers: number[] }
+ *    Set the available pitch notes for the current session.
+ *    notes[i] ↔ noteNumbers[i]  (e.g. ["D4","G4","A4"], [1,2,3])
+ *    After this, hovering a cell and pressing the corresponding number
+ *    inserts that note.  Send on every hat:ready and whenever the pan
+ *    layout changes.
+ *
+ *  hat:load-pattern
+ *    { type: 'hat:load-pattern', hat: string, id?: string }
+ *    Replace the current grid with the given HAT notation string.
+ *    If id matches an existing library entry, that entry is updated.
+ *
+ *  hat:load-library
+ *    { type: 'hat:load-library',
+ *      patterns: Array<{ id: string, hat: string, category?: string }>,
+ *      merge?: boolean }
+ *    Inject patterns into the sidebar library.
+ *    merge=true (default) keeps existing entries; false replaces only
+ *    previously-injected entries.
+ *
+ *  hat:set-theme
+ *    { type: 'hat:set-theme', vars: Record<string, string> }
+ *    Override CSS custom properties on :root.  All vars are optional.
+ *    Common targets:
+ *      --bg --bg2 --bg3 --bg4          surface colours
+ *      --fg --fg2 --fg3                text colours
+ *      --accent  --border              accent & divider
+ *      --R --Rbg --Rdim               right-hand colours
+ *      --L --Lbg --Ldim               left-hand colours
+ *      --font-mono  --font-ui         typeface stacks
+ *    Send on every hat:ready so theme persists after iframe reload.
+ *
+ *  hat:ping
+ *    { type: 'hat:ping' }
+ *    Request an immediate hat:ready reply.  Use when the host may have
+ *    loaded before the iframe finished initialising.
+ *
+ *  ── OUTBOUND MESSAGES  (HAT editor → host) ────────────────────────────────
+ *
+ *  hat:ready
+ *    { type: 'hat:ready', specVersion: string }
+ *    Fired once at script end and again on every hat:ping.
+ *    Host MUST respond with hat:set-notes and hat:set-theme here.
+ *
+ *  hat:hit
+ *    { type: 'hat:hit', hand: 'R'|'L', symbol: string,
+ *      isNote: boolean, colIndex: number, barIndex: number,
+ *      tOffsetMs: number }
+ *    Fired by the scheduler for every hit during playback.
+ *    isNote=true when symbol is a pitch name (not D/T/K/S/•/-).
+ *    tOffsetMs: milliseconds until the hit sounds — use this for
+ *    audio lookahead to avoid scheduling jitter.
+ *
+ *  hat:playback-state
+ *    { type: 'hat:playback-state', playing: boolean,
+ *      bpm: number, grid: string }
+ *    Fired on play and on stop.
+ *
+ *  hat:pattern-changed
+ *    { type: 'hat:pattern-changed', id: string,
+ *      title: string, hat: string }
+ *    Debounced (250 ms) after every edit.
+ *    hat is the complete, serialised HAT notation string.
+ *
+ *  ── QUICK INTEGRATION EXAMPLE ─────────────────────────────────────────────
+ *
+ *    <iframe id="hat" src="editor.html?embed=1"
+ *            sandbox="allow-scripts allow-same-origin allow-downloads allow-modals">
+ *    </iframe>
+ *
+ *    const frame = document.getElementById('hat');
+ *    window.addEventListener('message', e => {
+ *      if (e.source !== frame.contentWindow) return;
+ *      if (e.data?.type === 'hat:ready') {
+ *        frame.contentWindow.postMessage({
+ *          type: 'hat:set-notes',
+ *          notes: ['D4', 'F4', 'G4', 'A4'],
+ *          noteNumbers: [1, 2, 3, 4]
+ *        }, '*');
+ *        frame.contentWindow.postMessage({
+ *          type: 'hat:set-theme',
+ *          vars: { '--bg': '#f5efe3', '--font-ui': 'Arial, sans-serif' }
+ *        }, '*');
+ *      }
+ *      if (e.data?.type === 'hat:hit' && e.data.isNote) {
+ *        setTimeout(() => playMyAudio(e.data.symbol), e.data.tOffsetMs);
+ *      }
+ *    });
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 // Incoming message dispatcher
 if (EMBED_MODE) {
