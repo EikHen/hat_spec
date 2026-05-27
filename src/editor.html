@@ -2289,7 +2289,14 @@ if (EMBED_MODE) {
       case 'hat:load-pattern': _handleLoadPattern(msg); break;
       case 'hat:load-library': _handleLoadLibrary(msg); break;
       case 'hat:set-theme':
-        console.debug('hat:set-theme received; theme switching not yet implemented in HAT editor', msg);
+        if (msg.vars && typeof msg.vars === 'object') {
+          const root = document.documentElement;
+          for (const [k, v] of Object.entries(msg.vars)) {
+            if (typeof v === 'string') root.style.setProperty(k, v);
+          }
+        } else {
+          console.debug('hat:set-theme: no vars provided', msg);
+        }
         break;
       case 'hat:ping':
         _postToHost({ type: 'hat:ready', specVersion: '1.3.4' });
