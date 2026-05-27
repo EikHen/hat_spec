@@ -364,12 +364,42 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 .sc-row kbd { background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; font: 10px var(--font-mono); color: var(--fg); white-space: nowrap; }
 .sc-row span { flex: 1; color: var(--fg3); }
 
-/* ── New pattern modal ── */
-#new-pat-modal { display: none; position: fixed; inset: 0; background: var(--scrim); z-index: 8000; align-items: center; justify-content: center; }
-#new-pat-modal.show { display: flex; }
+/* ── New pattern modal / Export modal ── */
+#new-pat-modal, #export-modal { display: none; position: fixed; inset: 0; background: var(--scrim); z-index: 8000; align-items: center; justify-content: center; }
+#new-pat-modal.show, #export-modal.show { display: flex; }
 #new-pat-modal .modal { min-width: 280px; }
 #new-pat-modal .np-label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--fg2); margin-bottom: 8px; }
 #new-pat-modal .np-label input, #new-pat-modal .np-label select { background: var(--bg3); border: 1px solid var(--border); color: var(--fg); padding: 4px 7px; border-radius: 4px; font: inherit; font-size: 12px; }
+
+/* ── Lists ── */
+#list-pills { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 8px 6px; border-bottom: 1px solid var(--border); flex-shrink: 0; align-items: center; }
+.list-pill { position: relative; padding-right: 16px !important; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-del-x { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); font-size: 9px; color: var(--fg3); cursor: pointer; line-height: 1; padding: 0 1px; }
+.list-del-x:hover { color: #f06060; }
+.list-new-btn { font-size: 10px; padding: 2px 6px; border-radius: 10px; background: none; border: 1px dashed var(--border); color: var(--fg3); cursor: pointer; white-space: nowrap; }
+.list-new-btn:hover { border-color: var(--accent); color: var(--accent); }
+.list-rename-inp { background: var(--bg3); color: var(--fg); border: 1px solid var(--accent); border-radius: 3px; font: inherit; font-size: 10px; padding: 0 4px; width: 80px; outline: none; }
+/* Pat-item add-to-list button */
+.pat-list-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: 1px solid transparent; border-radius: 3px; color: var(--fg3); font-size: 11px; padding: 1px 5px; cursor: pointer; line-height: 1; opacity: 0; transition: opacity 0.1s; }
+.pat-list-btn.shift { right: 30px; }
+.pat-item:hover .pat-list-btn { opacity: 1; }
+.pat-list-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(125,212,255,0.1); }
+/* List-view drag handle */
+.drag-handle { color: var(--fg3); padding: 0 6px 0 0; cursor: grab; font-size: 11px; user-select: none; flex-shrink: 0; opacity: 0.5; line-height: 1; position: absolute; left: 4px; top: 50%; transform: translateY(-50%); }
+.pat-item.list-item { padding-left: 22px; }
+.pat-item.list-item:active .drag-handle { cursor: grabbing; }
+/* List-view selection */
+.pat-item.list-selected { background: var(--col-sel-strip) !important; }
+/* Drag-over drop indicators (box-shadow avoids layout shift) */
+.pat-item.drag-over-above { box-shadow: 0 -2px 0 var(--accent); }
+.pat-item.drag-over-below { box-shadow: 0 2px 0 var(--accent); }
+.pat-item.dragging { opacity: 0.35; }
+/* Add-to-list dropdown */
+.list-dropdown { position: fixed; z-index: 9000; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); min-width: 150px; overflow: hidden; }
+.list-dd-item { padding: 7px 12px; font-size: 12px; cursor: pointer; color: var(--fg); }
+.list-dd-item:hover { background: var(--bg3); }
+.list-dd-new { color: var(--accent); }
+.list-dd-sep { height: 1px; background: var(--border); }
 </style>
 </head>
 <body>
@@ -395,6 +425,7 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
       <input id="search" type="text" placeholder="Search patterns…">
     </div>
     <div id="cats"></div>
+    <div id="list-pills"></div>
     <div id="pattern-list"></div>
   </div>
 
@@ -547,9 +578,26 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
   <div class="modal">
     <h2>Import HAT</h2>
     <textarea id="import-text" placeholder="Paste HAT tablature here…"></textarea>
+    <div id="import-file-err" style="display:none;color:#f06060;font-size:11px;margin-top:6px;"></div>
     <div class="modal-btns">
+      <button id="import-file-btn">From file…</button>
+      <input type="file" id="import-file-input" accept=".hat.txt,.txt" style="display:none">
       <button id="import-cancel">Cancel</button>
       <button id="import-ok">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export modal -->
+<div id="export-modal">
+  <div class="modal">
+    <h2>Export</h2>
+    <label class="np-label">What to export
+      <select id="export-what"></select>
+    </label>
+    <div class="modal-btns">
+      <button id="export-cancel">Cancel</button>
+      <button id="export-ok">Download</button>
     </div>
   </div>
 </div>
@@ -594,6 +642,63 @@ const StorageStore = {
   },
   setActive(id) { try { if (id) localStorage.setItem(this.ACTIVE_KEY, id); else localStorage.removeItem(this.ACTIVE_KEY); } catch(e) {} },
   getActive() { try { return localStorage.getItem(this.ACTIVE_KEY); } catch(e) { return null; } }
+};
+
+// ─────────────────────────────────────────────
+//  LIST STORE — named rhythm lists
+// ─────────────────────────────────────────────
+// Each list: { id, name, items: [{type:'library'|'custom', ref:string}] }
+// Library ref: "cat::name"   Custom ref: uuid
+
+let _listUndoStack = [];
+
+const ListStore = {
+  KEY: 'hat_lists',
+  getAll() { try { const r=localStorage.getItem(this.KEY); return r?JSON.parse(r):[]; } catch(e){ return []; } },
+  _save(lists) { try { localStorage.setItem(this.KEY, JSON.stringify(lists)); } catch(e){} },
+  _snap() { _listUndoStack.push(localStorage.getItem(this.KEY)||'[]'); if(_listUndoStack.length>60)_listUndoStack.shift(); },
+  create(name) {
+    this._snap();
+    const lists=this.getAll(), id=genId();
+    lists.push({id, name, items:[]});
+    this._save(lists); return id;
+  },
+  rename(id, name) {
+    this._snap();
+    const lists=this.getAll(), l=lists.find(x=>x.id===id);
+    if(l){ l.name=name; this._save(lists); }
+  },
+  remove(id) { this._snap(); this._save(this.getAll().filter(x=>x.id!==id)); },
+  addItem(listId, type, ref) {
+    const lists=this.getAll(), l=lists.find(x=>x.id===listId);
+    if(!l) return;
+    if(!l.items.find(i=>i.type===type&&i.ref===ref)){ this._snap(); l.items.push({type,ref}); this._save(lists); }
+  },
+  removeItem(listId, type, ref) {
+    this._snap();
+    const lists=this.getAll(), l=lists.find(x=>x.id===listId);
+    if(!l) return;
+    l.items=l.items.filter(i=>!(i.type===type&&i.ref===ref)); this._save(lists);
+  },
+  moveItem(listId, type, ref, dir) {
+    this._snap();
+    const lists=this.getAll(), l=lists.find(x=>x.id===listId);
+    if(!l) return;
+    const idx=l.items.findIndex(i=>i.type===type&&i.ref===ref);
+    if(idx<0) return;
+    const ni=idx+dir;
+    if(ni<0||ni>=l.items.length) return;
+    [l.items[idx],l.items[ni]]=[l.items[ni],l.items[idx]];
+    this._save(lists);
+  },
+  reorderItem(listId, fromIdx, toIdx) {
+    this._snap();
+    const lists=this.getAll(), l=lists.find(x=>x.id===listId);
+    if(!l||fromIdx===toIdx) return;
+    const [item]=l.items.splice(fromIdx,1);
+    l.items.splice(toIdx,0,item);
+    this._save(lists);
+  }
 };
 
 function genId() {
@@ -969,6 +1074,13 @@ let _copiedBars = null, _copiedCols = null;
 
 let activeCat = null;
 let activePatIdx = -1;
+let activeList = null;         // ID of the currently viewed list, or null
+let _listSelection = new Set();// Set of JSON-encoded [type,ref] keys
+let _listLastClickIdx = null;  // for shift-range select
+let _dragSrcIdx = null;        // source index during drag
+
+function listKey(item) { return JSON.stringify([item.type, item.ref]); }
+function listKeyParse(k) { const [type,ref]=JSON.parse(k); return {type,ref}; }
 
 function buildSidebar() {
   const catsEl = document.getElementById('cats');
@@ -976,40 +1088,302 @@ function buildSidebar() {
 
   // "Mine" pill for custom patterns
   const minePill = document.createElement('span');
-  minePill.className = 'cat-pill' + (activeCat === '__custom' ? ' active' : '');
+  minePill.className = 'cat-pill' + (activeCat === '__custom' && !activeList ? ' active' : '');
   minePill.textContent = 'Mine';
-  minePill.onclick = () => setCat('__custom', minePill);
+  minePill.onclick = () => { activeList = null; setCat('__custom', minePill); };
   catsEl.appendChild(minePill);
 
   const allPill = document.createElement('span');
-  allPill.className = 'cat-pill' + (activeCat === null ? ' active' : '');
+  allPill.className = 'cat-pill' + (activeCat === null && !activeList ? ' active' : '');
   allPill.textContent = 'All';
-  allPill.onclick = () => setCat(null, allPill);
+  allPill.onclick = () => { activeList = null; setCat(null, allPill); };
   catsEl.appendChild(allPill);
 
   const cats = [...new Set(PATTERNS.map(p => p.cat))];
   for (const cat of cats) {
     const pill = document.createElement('span');
-    pill.className = 'cat-pill' + (activeCat === cat ? ' active' : '');
+    pill.className = 'cat-pill' + (activeCat === cat && !activeList ? ' active' : '');
     pill.textContent = cat;
-    pill.onclick = () => setCat(cat, pill);
+    pill.onclick = () => { activeList = null; setCat(cat, pill); };
     catsEl.appendChild(pill);
   }
 
+  renderListPills();
   renderPatternList();
 }
 
 function setCat(cat, pill) {
   activeCat = cat;
   document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
-  pill.classList.add('active');
+  if (!activeList) pill.classList.add('active');
   renderPatternList();
 }
+
+// ─────────────────────────────────────────────
+//  LIST PILLS + MANAGEMENT
+// ─────────────────────────────────────────────
+
+function renderListPills() {
+  const el = document.getElementById('list-pills');
+  el.innerHTML = '';
+  const lists = ListStore.getAll();
+
+  lists.forEach(lst => {
+    const pill = document.createElement('span');
+    pill.className = 'cat-pill list-pill' + (activeList === lst.id ? ' active' : '');
+    pill.title = 'Double-click to rename';
+    // Name text node
+    const nameNode = document.createTextNode(lst.name);
+    pill.appendChild(nameNode);
+    pill.onclick = () => {
+      const next = (activeList === lst.id) ? null : lst.id;
+      if (next !== activeList) { _listSelection.clear(); _listLastClickIdx = null; }
+      activeList = next;
+      renderListPills();
+      renderPatternList();
+    };
+    pill.ondblclick = e => { e.stopPropagation(); startRenameList(pill, lst.id, lst.name); };
+    // Delete ×
+    const x = document.createElement('span');
+    x.className = 'list-del-x'; x.textContent = '×'; x.title = 'Delete list';
+    x.onclick = e => {
+      e.stopPropagation();
+      if (!confirm(`Delete list "${lst.name}"?`)) return;
+      ListStore.remove(lst.id);
+      if (activeList === lst.id) activeList = null;
+      renderListPills(); renderPatternList();
+    };
+    pill.appendChild(x);
+    el.appendChild(pill);
+  });
+
+  // "+ list" button
+  const nb = document.createElement('span');
+  nb.className = 'list-new-btn'; nb.textContent = '+ list'; nb.title = 'New list';
+  nb.onclick = () => {
+    const name = prompt('List name:');
+    if (!name || !name.trim()) return;
+    const id = ListStore.create(name.trim());
+    activeList = id;
+    renderListPills(); renderPatternList();
+  };
+  el.appendChild(nb);
+}
+
+function startRenameList(pill, id, currentName) {
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.value = currentName; inp.className = 'list-rename-inp';
+  pill.innerHTML = ''; pill.appendChild(inp);
+  inp.focus(); inp.select();
+  const commit = () => { const v=inp.value.trim(); if(v) ListStore.rename(id,v); renderListPills(); };
+  inp.onblur = commit;
+  inp.onkeydown = e => {
+    if (e.key==='Enter') { e.preventDefault(); inp.blur(); }
+    if (e.key==='Escape') { inp.value=currentName; inp.blur(); }
+  };
+}
+
+// ─────────────────────────────────────────────
+//  ADD-TO-LIST DROPDOWN
+// ─────────────────────────────────────────────
+
+function closeListDropdown() {
+  const el = document.getElementById('list-dropdown');
+  if (el) el.remove();
+}
+
+function showAddToListDropdown(e, type, ref) {
+  e.stopPropagation();
+  closeListDropdown();
+  const lists = ListStore.getAll();
+  const menu = document.createElement('div');
+  menu.id = 'list-dropdown'; menu.className = 'list-dropdown';
+
+  const addToList = (listId, listName) => {
+    closeListDropdown();
+    ListStore.addItem(listId, type, ref);
+    showToast(`Added to "${listName}"`);
+    renderListPills(); renderPatternList();
+  };
+
+  if (lists.length > 0) {
+    lists.forEach(lst => {
+      const row = document.createElement('div');
+      row.className = 'list-dd-item'; row.textContent = lst.name;
+      row.onclick = () => addToList(lst.id, lst.name);
+      menu.appendChild(row);
+    });
+    const sep = document.createElement('div'); sep.className = 'list-dd-sep';
+    menu.appendChild(sep);
+  }
+
+  const newRow = document.createElement('div');
+  newRow.className = 'list-dd-item list-dd-new'; newRow.textContent = '+ New list…';
+  newRow.onclick = () => {
+    closeListDropdown();
+    const name = prompt('List name:');
+    if (!name || !name.trim()) return;
+    const id = ListStore.create(name.trim());
+    ListStore.addItem(id, type, ref);
+    showToast(`Added to "${name.trim()}"`);
+    renderListPills(); renderPatternList();
+  };
+  menu.appendChild(newRow);
+
+  document.body.appendChild(menu);
+  const rect = e.target.getBoundingClientRect();
+  // Position: prefer below button, keep on screen
+  let top = rect.bottom + 4;
+  let left = rect.left;
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+  // Close on next outside click
+  setTimeout(() => document.addEventListener('click', closeListDropdown, {once:true}), 0);
+}
+
+// ─────────────────────────────────────────────
+//  PATTERN LIST RENDER
+// ─────────────────────────────────────────────
 
 function renderPatternList() {
   const listEl = document.getElementById('pattern-list');
   const q = document.getElementById('search').value.toLowerCase();
   listEl.innerHTML = '';
+
+  // ── List view ──
+  if (activeList) {
+    const lst = ListStore.getAll().find(l => l.id === activeList);
+    if (!lst) { activeList = null; renderListPills(); return renderPatternList(); }
+
+    lst.items.forEach((item, idx) => {
+      let pat = null, name = '', meta = '', isActive = false;
+      if (item.type === 'library') {
+        const [cat, pname] = item.ref.split('::');
+        pat = PATTERNS.find(p => p.cat === cat && p.name === pname);
+        if (pat) {
+          name = pat.name; meta = `${pat.cat} · ${pat.time} · ${pat.grid}`;
+          isActive = PATTERNS.indexOf(pat) === activePatIdx;
+        }
+      } else {
+        pat = StorageStore.load(item.ref);
+        if (pat) {
+          name = pat.title; meta = `${pat.time||''}${pat.grid?' · '+pat.grid:''}`;
+          isActive = item.ref === _customPatId;
+        }
+      }
+
+      const key = listKey(item);
+      const isSel = _listSelection.has(key);
+      const row = document.createElement('div');
+      row.className = 'pat-item list-item'
+        + (isActive ? ' active' : '')
+        + (isSel ? ' list-selected' : '')
+        + (!pat ? ' pat-item-missing' : '');
+      row.draggable = true;
+      row.dataset.idx = String(idx);
+
+      // Drag handle
+      const handle = document.createElement('span');
+      handle.className = 'drag-handle'; handle.textContent = '⠿'; handle.title = 'Drag to reorder';
+      handle.setAttribute('draggable', 'false');
+      row.appendChild(handle);
+
+      if (pat) {
+        const nameDiv = document.createElement('div'); nameDiv.className = 'pat-name';
+        nameDiv.innerHTML = escHtml(name) + (item.type==='custom' ? '<span class="pat-badge custom">custom</span>' : '');
+        const metaDiv = document.createElement('div'); metaDiv.className = 'pat-meta';
+        metaDiv.textContent = meta;
+        row.appendChild(nameDiv); row.appendChild(metaDiv);
+        row.style.paddingRight = '30px';
+      } else {
+        const nd = document.createElement('div'); nd.className = 'pat-name';
+        nd.style.cssText = 'color:var(--fg3);font-style:italic'; nd.textContent = 'pattern not found';
+        const md = document.createElement('div'); md.className = 'pat-meta'; md.textContent = item.ref;
+        row.appendChild(nd); row.appendChild(md);
+        row.style.paddingRight = '30px';
+      }
+
+      // Remove button
+      const rm = document.createElement('button');
+      rm.className = 'pat-del-btn'; rm.textContent = '×'; rm.title = 'Remove from list';
+      rm.setAttribute('draggable','false');
+      rm.onclick = e => {
+        e.stopPropagation();
+        _listSelection.delete(key);
+        ListStore.removeItem(activeList, item.type, item.ref);
+        renderPatternList();
+      };
+      row.appendChild(rm);
+
+      // Click: select (shift = range, otherwise single) + load on single click
+      row.onclick = e => {
+        if (e.shiftKey && _listLastClickIdx !== null) {
+          const lo = Math.min(_listLastClickIdx, idx), hi = Math.max(_listLastClickIdx, idx);
+          _listSelection.clear();
+          for (let i=lo; i<=hi; i++) _listSelection.add(listKey(lst.items[i]));
+          renderPatternList();
+        } else {
+          _listSelection.clear();
+          _listSelection.add(key);
+          _listLastClickIdx = idx;
+          if (pat) {
+            if (item.type==='library') loadPattern(PATTERNS.indexOf(pat));
+            else loadCustomPattern(item.ref);
+          } else {
+            renderPatternList();
+          }
+        }
+      };
+
+      // Drag events
+      row.ondragstart = e => {
+        _dragSrcIdx = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(idx)); // required for Firefox
+        setTimeout(() => row.classList.add('dragging'), 0);
+      };
+      row.ondragend = () => {
+        _dragSrcIdx = null;
+        row.classList.remove('dragging');
+        listEl.querySelectorAll('.drag-over-above,.drag-over-below').forEach(el => {
+          el.classList.remove('drag-over-above','drag-over-below');
+        });
+      };
+      row.ondragover = e => {
+        if (_dragSrcIdx === null) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const mid = row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
+        listEl.querySelectorAll('.drag-over-above,.drag-over-below').forEach(el => {
+          el.classList.remove('drag-over-above','drag-over-below');
+        });
+        row.classList.add(e.clientY < mid ? 'drag-over-above' : 'drag-over-below');
+      };
+      row.ondragleave = () => row.classList.remove('drag-over-above','drag-over-below');
+      row.ondrop = e => {
+        e.preventDefault();
+        if (_dragSrcIdx === null || _dragSrcIdx === idx) return;
+        const mid = row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
+        let target = e.clientY < mid ? idx : idx + 1;
+        if (_dragSrcIdx < target) target--;
+        ListStore.reorderItem(activeList, _dragSrcIdx, target);
+        row.classList.remove('drag-over-above','drag-over-below');
+        renderPatternList();
+      };
+
+      listEl.appendChild(row);
+    });
+
+    if (lst.items.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:14px 10px;font-size:11px;color:var(--fg3);text-align:center;';
+      empty.textContent = 'Empty list. Use + on any pattern to add it here.';
+      listEl.appendChild(empty);
+    }
+    return;
+  }
+
+  // ── Normal view ──
 
   // Custom patterns first (when "Mine" or "All")
   if (activeCat === null || activeCat === '__custom') {
@@ -1020,6 +1394,11 @@ function renderPatternList() {
       item.className = 'pat-item' + (isActive ? ' active' : '');
       item.innerHTML = `<div class="pat-name">${escHtml(cp.title)}<span class="pat-badge custom">custom</span></div><div class="pat-meta">${escHtml(cp.time||'')}${cp.grid?' · '+escHtml(cp.grid):''}</div>`;
       item.onclick = () => loadCustomPattern(cp.id);
+      // Add-to-list button (shifted left of del button)
+      const lb = document.createElement('button');
+      lb.className = 'pat-list-btn shift'; lb.textContent = '+'; lb.title = 'Add to list';
+      lb.onclick = e => showAddToListDropdown(e, 'custom', cp.id);
+      item.appendChild(lb);
       const del = document.createElement('button');
       del.className = 'pat-del-btn'; del.textContent = '×'; del.title = 'Delete pattern';
       del.onclick = e => { e.stopPropagation(); deleteCustomPattern(cp.id); };
@@ -1037,6 +1416,11 @@ function renderPatternList() {
     item.className = 'pat-item' + (i === activePatIdx ? ' active' : '');
     item.innerHTML = `<div class="pat-name">${escHtml(p.name)}</div><div class="pat-meta">${escHtml(p.cat)} · ${escHtml(p.time)} · ${escHtml(p.grid)}</div>`;
     item.onclick = () => loadPattern(i);
+    // Add-to-list button
+    const lb = document.createElement('button');
+    lb.className = 'pat-list-btn'; lb.textContent = '+'; lb.title = 'Add to list';
+    lb.onclick = e => showAddToListDropdown(e, 'library', `${p.cat}::${p.name}`);
+    item.appendChild(lb);
     listEl.appendChild(item);
   });
 }
@@ -1411,7 +1795,14 @@ function pushUndo() {
   _undoStack.push(document.getElementById('source').value);
   if (_undoStack.length>60) _undoStack.shift();
 }
-function undo() { if (_undoStack.length) { _hovered=null; loadHAT(_undoStack.pop()); } }
+function undo() {
+  if (activeList && _listUndoStack.length) {
+    try { localStorage.setItem(ListStore.KEY, _listUndoStack.pop()); } catch(e){}
+    renderListPills(); renderPatternList();
+  } else if (_undoStack.length) {
+    _hovered=null; loadHAT(_undoStack.pop());
+  }
+}
 
 function getColObj(sec,bar,col) { return state.parsed.sections[sec].bars[bar].cols[col]; }
 
@@ -1762,6 +2153,14 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if (e.ctrlKey||e.metaKey||inInput) return;
+  // Backspace/Delete on list selection
+  if (activeList&&_listSelection.size>0&&(e.key==='Backspace'||e.key==='Delete')) {
+    e.preventDefault();
+    _listSelection.forEach(k => { const {type,ref}=listKeyParse(k); ListStore.removeItem(activeList,type,ref); });
+    _listSelection.clear(); _listLastClickIdx=null;
+    renderPatternList(); return;
+  }
+
   // Delete selected bars (works even without a hovered cell)
   if (_selBars.size>0&&(e.key==='Delete'||e.key==='Backspace'||e.key==='x')) {
     e.preventDefault(); deleteSelectedBars(); return;
@@ -1939,10 +2338,89 @@ document.getElementById('btn-import').onclick=()=>{
   document.getElementById('import-text').focus();
 };
 document.getElementById('btn-export').onclick=()=>{
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([document.getElementById('source').value],{type:'text/plain'}));
-  a.download=((state.parsed?.meta?.title||'pattern').replace(/\s+/g,'-').toLowerCase())+'.hat.txt';
-  a.click();
+  const sel = document.getElementById('export-what');
+  sel.innerHTML = '';
+  // Current pattern
+  const optCur = document.createElement('option');
+  optCur.value = '__current'; optCur.textContent = 'Current pattern (.hat.txt)';
+  sel.appendChild(optCur);
+  // Each list
+  ListStore.getAll().forEach(lst => {
+    const o = document.createElement('option');
+    o.value = 'list::' + lst.id;
+    o.textContent = `List: ${lst.name} (.json)`;
+    sel.appendChild(o);
+  });
+  // All custom
+  if (_customPatterns.length > 0) {
+    const o = document.createElement('option');
+    o.value = '__custom'; o.textContent = 'All custom patterns (.json)';
+    sel.appendChild(o);
+  }
+  document.getElementById('export-modal').classList.add('show');
+};
+
+function downloadBlob(content, filename, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type: mime}));
+  a.download = filename; a.click();
+}
+
+document.getElementById('export-cancel').onclick = () => document.getElementById('export-modal').classList.remove('show');
+document.getElementById('export-modal').onclick = e => { if (e.target===document.getElementById('export-modal')) document.getElementById('export-modal').classList.remove('show'); };
+
+document.getElementById('export-ok').onclick = () => {
+  const val = document.getElementById('export-what').value;
+  if (val === '__current') {
+    const title = (state.parsed?.meta?.title||'pattern').replace(/\s+/g,'-').toLowerCase();
+    downloadBlob(document.getElementById('source').value, title+'.hat.txt', 'text/plain');
+  } else if (val === '__custom') {
+    const payload = JSON.stringify({
+      version: 1, type: 'hat-custom-patterns',
+      patterns: _customPatterns.map(cp => ({name:cp.title, time:cp.time||'', grid:cp.grid||'', hat:cp.hat}))
+    }, null, 2);
+    downloadBlob(payload, 'custom-patterns.json', 'application/json');
+  } else if (val.startsWith('list::')) {
+    const listId = val.slice(6);
+    const lst = ListStore.getAll().find(l => l.id === listId);
+    if (!lst) return;
+    const patterns = lst.items.map(item => {
+      if (item.type === 'library') {
+        const [cat, pname] = item.ref.split('::');
+        const p = PATTERNS.find(x => x.cat===cat && x.name===pname);
+        return p ? {name:p.name, cat:p.cat, time:p.time, grid:p.grid, hat:p.hat} : null;
+      } else {
+        const cp = StorageStore.load(item.ref);
+        return cp ? {name:cp.title, time:cp.time||'', grid:cp.grid||'', hat:cp.hat} : null;
+      }
+    }).filter(Boolean);
+    const payload = JSON.stringify({version:1, type:'hat-list', name:lst.name, patterns}, null, 2);
+    const fname = lst.name.replace(/\s+/g,'-').toLowerCase() + '.json';
+    downloadBlob(payload, fname, 'application/json');
+  }
+  document.getElementById('export-modal').classList.remove('show');
+};
+
+// Import from file
+document.getElementById('import-file-btn').onclick = () => document.getElementById('import-file-input').click();
+document.getElementById('import-file-input').onchange = e => {
+  const file = e.target.files[0]; if (!file) return;
+  const errEl = document.getElementById('import-file-err');
+  errEl.style.display = 'none';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const text = ev.target.result;
+    const parsed = parseHAT(text);
+    if (!parsed.ok) {
+      errEl.textContent = 'Invalid HAT file: ' + parsed.error;
+      errEl.style.display = 'block';
+    } else {
+      document.getElementById('import-text').value = text;
+      errEl.style.display = 'none';
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // reset so same file can be re-selected
 };
 document.getElementById('import-cancel').onclick=()=>document.getElementById('overlay').classList.remove('show');
 document.getElementById('import-ok').onclick=()=>{
