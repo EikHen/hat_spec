@@ -1547,7 +1547,7 @@ function cellClass(cell,hand) {
 }
 let _showNoteNums = false;
 function cellText(c) {
-  if (!c||c.hit==='-') return '·';
+  if (!c||c.hit==='-') return '';
   const mod=c.mod==='*'?'*':'', hit=c.hit;
   if (_showNoteNums && state.parsed?.meta) {
     const meta=state.parsed.meta;
