@@ -581,7 +581,7 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
     <div id="import-file-err" style="display:none;color:#f06060;font-size:11px;margin-top:6px;"></div>
     <div class="modal-btns">
       <button id="import-file-btn">From file…</button>
-      <input type="file" id="import-file-input" accept=".hat.txt,.txt" style="display:none">
+      <input type="file" id="import-file-input" accept=".hat.txt,.txt,.hatlist.json,.json" style="display:none">
       <button id="import-cancel">Cancel</button>
       <button id="import-ok">Import</button>
     </div>
@@ -2379,7 +2379,7 @@ document.getElementById('export-ok').onclick = () => {
       version: 1, type: 'hat-custom-patterns',
       patterns: _customPatterns.map(cp => ({name:cp.title, time:cp.time||'', grid:cp.grid||'', hat:cp.hat}))
     }, null, 2);
-    downloadBlob(payload, 'custom-patterns.json', 'application/json');
+    downloadBlob(payload, 'custom-patterns.hatlist.json', 'application/json');
   } else if (val.startsWith('list::')) {
     const listId = val.slice(6);
     const lst = ListStore.getAll().find(l => l.id === listId);
@@ -2395,7 +2395,7 @@ document.getElementById('export-ok').onclick = () => {
       }
     }).filter(Boolean);
     const payload = JSON.stringify({version:1, type:'hat-list', name:lst.name, patterns}, null, 2);
-    const fname = lst.name.replace(/\s+/g,'-').toLowerCase() + '.json';
+    const fname = lst.name.replace(/\s+/g,'-').toLowerCase() + '.hatlist.json';
     downloadBlob(payload, fname, 'application/json');
   }
   document.getElementById('export-modal').classList.remove('show');
@@ -2410,6 +2410,25 @@ document.getElementById('import-file-input').onchange = e => {
   const reader = new FileReader();
   reader.onload = ev => {
     const text = ev.target.result;
+    // Try hatlist JSON first
+    if (file.name.endsWith('.json')) {
+      try {
+        const data = JSON.parse(text);
+        if (data.version === 1 && (data.type === 'hat-list' || data.type === 'hat-custom-patterns') && Array.isArray(data.patterns)) {
+          importHatList(data);
+          document.getElementById('overlay').classList.remove('show');
+          return;
+        }
+        errEl.textContent = 'Unrecognised JSON format (expected hat-list or hat-custom-patterns v1).';
+        errEl.style.display = 'block';
+        return;
+      } catch(ex) {
+        errEl.textContent = 'Invalid JSON: ' + ex.message;
+        errEl.style.display = 'block';
+        return;
+      }
+    }
+    // Otherwise treat as HAT text — put in textarea for user confirmation
     const parsed = parseHAT(text);
     if (!parsed.ok) {
       errEl.textContent = 'Invalid HAT file: ' + parsed.error;
@@ -2420,8 +2439,38 @@ document.getElementById('import-file-input').onchange = e => {
     }
   };
   reader.readAsText(file);
-  e.target.value = ''; // reset so same file can be re-selected
+  e.target.value = '';
 };
+
+function importHatList(data) {
+  const ids = [];
+  for (const p of data.patterns) {
+    if (!p.hat) continue;
+    const parsed = parseHAT(p.hat);
+    const meta = parsed.ok ? parsed.meta : {};
+    const id = genId();
+    StorageStore.save(id, p.hat, {
+      title: p.name || meta.title || 'Untitled',
+      time:  p.time || meta.time  || '',
+      grid:  p.grid || meta.grid  || ''
+    });
+    ids.push(id);
+  }
+  _customPatterns = StorageStore.list();
+
+  if (data.type === 'hat-list' && data.name && ids.length) {
+    // Build list in one shot to avoid noisy undo entries
+    _listUndoStack.push(localStorage.getItem(ListStore.KEY) || '[]');
+    const listId = genId();
+    const lists = ListStore.getAll();
+    lists.push({id: listId, name: data.name, items: ids.map(id => ({type:'custom', ref:id}))});
+    ListStore._save(lists);
+    activeList = listId;
+  }
+
+  buildSidebar();
+  showToast(`Imported ${ids.length} pattern${ids.length !== 1 ? 's' : ''}${data.name ? ` into "${data.name}"` : ''}`);
+}
 document.getElementById('import-cancel').onclick=()=>document.getElementById('overlay').classList.remove('show');
 document.getElementById('import-ok').onclick=()=>{
   const t=document.getElementById('import-text').value.trim();
