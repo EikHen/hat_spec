@@ -559,6 +559,18 @@ input[type=range] { width: 80px; accent-color: var(--accent); }
 'use strict';
 
 // ─────────────────────────────────────────────
+//  EMBED MODE — postMessage bridge
+// ─────────────────────────────────────────────
+
+const EMBED_MODE = (window.parent !== window) ||
+  (new URLSearchParams(location.search).get('embed') === '1');
+
+function _postToHost(msg) {
+  if (!EMBED_MODE) return;
+  window.parent.postMessage({ version: 1, ...msg }, '*');
+}
+
+// ─────────────────────────────────────────────
 //  LOCAL STORAGE — custom pattern store
 // ─────────────────────────────────────────────
 
@@ -1076,7 +1088,7 @@ function deleteCustomPattern(id) {
 //  LOAD / RENDER
 // ─────────────────────────────────────────────
 
-function loadHAT(text) { state.hatText=text; document.getElementById('source').value=text; reparse(); }
+function loadHAT(text) { state.hatText=text; document.getElementById('source').value=text; reparse(); _emitPatternChanged(); }
 
 function reparse() {
   // Clear stale hover/selection refs — DOM will be rebuilt
@@ -1516,6 +1528,7 @@ function syncSourceFromModel() {
   document.getElementById('source').value=text; state.hatText=text;
   // Auto-save custom patterns on every edit
   if (_customPatId) { StorageStore.save(_customPatId, text, state.parsed.meta); _customPatterns=StorageStore.list(); }
+  _emitPatternChanged();
   // Keep card-meta in sync with model (reparse() also does this but isn't called on visual edits)
   const m=state.parsed.meta;
   document.getElementById('card-title').textContent=m.title||'Untitled';
@@ -2062,7 +2075,13 @@ function scheduleLoop() {
   const step=gridStepSec();
   while (_nextStepTime<actx.currentTime+LOOKAHEAD) {
     const col=cols[_stepIdx%cols.length];
-    if (col) { playHit(actx,_nextStepTime,col.R?.hit); playHit(actx,_nextStepTime,col.L?.hit); }
+    if (col) {
+      const tOffMs=(_nextStepTime-actx.currentTime)*1000;
+      const barIdx=Math.floor(_stepIdx/cols.length);
+      if (col.R?.hit && col.R.hit!=='-') _postToHost({type:'hat:hit',hand:'R',symbol:col.R.hit,isNote:col.R.hit.length>1,colIndex:_stepIdx%cols.length,barIndex:barIdx,tOffsetMs:tOffMs});
+      if (col.L?.hit && col.L.hit!=='-') _postToHost({type:'hat:hit',hand:'L',symbol:col.L.hit,isNote:col.L.hit.length>1,colIndex:_stepIdx%cols.length,barIndex:barIdx,tOffsetMs:tOffMs});
+      playHit(actx,_nextStepTime,col.R?.hit); playHit(actx,_nextStepTime,col.L?.hit);
+    }
     _nextStepTime+=step; _stepIdx++;
     if (_stepIdx>=cols.length) {
       if (!document.getElementById('loop-chk').checked){ setTimeout(stopPlayback,(_nextStepTime-actx.currentTime)*1000+100); return; }
@@ -2094,11 +2113,13 @@ function startPlayback() {
   _stepIdx=0; _nextStepTime=actx.currentTime+0.05; _playing=true;
   document.getElementById('play-btn').textContent='⏹';
   _schedTimer=setInterval(scheduleLoop,SCHED_MS); animatePlayhead();
+  _postToHost({type:'hat:playback-state',playing:true,bpm:state.parsed.meta.tempo||120,grid:state.parsed.meta.grid||'8th'});
 }
 
 function stopPlayback() {
   _playing=false; clearInterval(_schedTimer); cancelAnimationFrame(_phRaf);
   document.getElementById('play-btn').textContent='▶'; highlightCol(-1);
+  _postToHost({type:'hat:playback-state',playing:false,bpm:state.parsed?.meta?.tempo||120,grid:state.parsed?.meta?.grid||'8th'});
 }
 
 document.getElementById('play-btn').onclick=()=>_playing?stopPlayback():startPlayback();
@@ -2187,6 +2208,100 @@ if (window.RHYTHM_LIBRARY && window.RHYTHM_LIBRARY.length) {
     } catch (e) { /* external library unavailable */ }
   })();
 }
+
+// ─────────────────────────────────────────────
+//  EMBED POSTMESSAGE API  (H-1 … H-4)
+// ─────────────────────────────────────────────
+
+// Debounced emitter for hat:pattern-changed
+let _patChangedTimer = null;
+function _emitPatternChanged() {
+  if (!EMBED_MODE) return;
+  clearTimeout(_patChangedTimer);
+  _patChangedTimer = setTimeout(() => {
+    const id = _customPatId || (activePatIdx >= 0 ? PATTERNS[activePatIdx]?.name || String(activePatIdx) : 'unknown');
+    const title = state.parsed?.meta?.title || 'Untitled';
+    _postToHost({ type: 'hat:pattern-changed', id, title, hat: state.hatText || '' });
+  }, 250);
+}
+
+// Injected library pattern IDs (dedup guard)
+const _injectedIds = new Set();
+
+function _handleSetNotes(msg) {
+  if (!state.parsed?.ok) return;
+  const notes = Array.isArray(msg.notes) ? msg.notes : [];
+  const nums = Array.isArray(msg.noteNumbers) ? msg.noteNumbers : notes.map((_,i) => i+1);
+  // Update meta on live model
+  state.parsed.meta.notes = notes;
+  state.parsed.meta.noteNumbers = nums;
+  // Store as session default for new patterns
+  _defaultNotes = notes;
+  _defaultNoteNumbers = nums;
+  syncSourceFromModel();
+}
+
+function _handleLoadPattern(msg) {
+  if (typeof msg.hat !== 'string') return;
+  if (msg.id) {
+    // Replace existing library entry if id matches, else add
+    const idx = PATTERNS.findIndex(p => p.id === msg.id);
+    if (idx >= 0) { PATTERNS[idx] = { ...PATTERNS[idx], hat: msg.hat, id: msg.id }; }
+    else { PATTERNS.push({ name: msg.id, hat: msg.hat, id: msg.id, cat: 'imported' }); }
+    buildSidebar();
+  }
+  loadHAT(msg.hat);
+}
+
+function _handleLoadLibrary(msg) {
+  if (!Array.isArray(msg.patterns)) return;
+  const merge = msg.merge !== false;
+  if (!merge) {
+    // Remove previously injected patterns
+    for (let i = PATTERNS.length - 1; i >= 0; i--) {
+      if (_injectedIds.has(PATTERNS[i].id)) PATTERNS.splice(i, 1);
+    }
+    _injectedIds.clear();
+  }
+  let added = 0;
+  for (const p of msg.patterns) {
+    if (!p.id || !p.hat) continue;
+    if (merge && _injectedIds.has(p.id)) continue;
+    PATTERNS.push({ name: p.id, hat: p.hat, cat: p.category || 'library', id: p.id });
+    _injectedIds.add(p.id);
+    added++;
+  }
+  if (added > 0) buildSidebar();
+}
+
+// Session-default notes (set by hat:set-notes, applied to new patterns)
+let _defaultNotes = null;
+let _defaultNoteNumbers = null;
+
+// Incoming message dispatcher
+if (EMBED_MODE) {
+  window.addEventListener('message', (event) => {
+    if (event.source !== window.parent) return;
+    const msg = event.data;
+    if (!msg || typeof msg.type !== 'string') return;
+    switch (msg.type) {
+      case 'hat:set-notes':    _handleSetNotes(msg); break;
+      case 'hat:load-pattern': _handleLoadPattern(msg); break;
+      case 'hat:load-library': _handleLoadLibrary(msg); break;
+      case 'hat:set-theme':
+        console.debug('hat:set-theme received; theme switching not yet implemented in HAT editor', msg);
+        break;
+      case 'hat:ping':
+        _postToHost({ type: 'hat:ready', specVersion: '1.3.4' });
+        break;
+      default:
+        console.debug('hat: unknown incoming message type', msg.type);
+    }
+  });
+}
+
+// Emit hat:ready once init is complete
+_postToHost({ type: 'hat:ready', specVersion: '1.3.4' });
 </script>
 </body>
 </html>
