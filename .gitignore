@@ -1,3 +1,4 @@
+
 *
 !HAT-spec.md
 !hat-list.md
@@ -11,6 +12,7 @@
 !src/settings-schema.json
 !LICENSE
 !README.md
+!CLAUDE.md
 !extensions/
 !extensions/*.md
 !index.html
