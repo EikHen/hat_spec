@@ -4,6 +4,11 @@
 !rhythm-library.md
 !src/
 !src/editor.html
+!src/css/
+!src/css/*.css
+!src/js/
+!src/js/*.js
+!src/settings-schema.json
 !LICENSE
 !README.md
 !extensions/

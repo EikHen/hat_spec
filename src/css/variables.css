@@ -1,0 +1,64 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+:root {
+  /* ── Surfaces ── */
+  --bg:  #2e2e34;   /* main background */
+  --bg2: #38383f;   /* panels, toolbars */
+  --bg3: #424249;   /* inputs, buttons */
+  --bg4: #505059;   /* hover states */
+
+  /* ── Text ── */
+  --fg:  #eaeaea;
+  --fg2: #b8b8b8;
+  --fg3: #727278;
+
+  /* ── Accent / brand ── */
+  --accent: #7dd4ff;
+  --border: #48484f;
+
+  /* ── Hand colors ── */
+  --R: #7dd4ff; --Rdim: #3870a8; --Rbg: #163045;
+  --L: #ffc050; --Ldim: #8a6020; --Lbg: #3a2808;
+
+  /* ── Hit colors ── */
+  --hit-D: #7dd4ff; --hit-T: #5ab0f0; --hit-K: #ffc050;
+  --hit-S: #d878f8; --hit-note: #78e068;
+
+  /* ── Cell backgrounds ── */
+  --cell-rest-bg:  #2a2a2f;
+  --cell-D-bg:     #163450;
+  --cell-T-bg:     #12283c;
+  --cell-K-bg:     #3d2808;
+  --cell-S-bg:     #301244;
+  --cell-ghost-bg: #272729;
+  --cell-note-bg:  #132a13;
+
+  /* ── Bar / grid ── */
+  --bar-bg:          #2a2a32;
+  --bar-border:      #555570;
+  --bar-selected-bg: #1a2a40;
+
+  /* ── Separators ── */
+  --sep-beat:     #4a7aaa;
+  --sep-beat-dim: #3a5a88;
+  --sep-sub:      #505068;
+  --sep-sub-dim:  #3e3e58;
+
+  /* ── Count row ── */
+  --count-tok-fg: #9ab8d8;
+  --count-tok-bg: rgba(66,104,152,0.18);
+
+  /* ── Selection ── */
+  --col-sel-cell:  rgba(240,160,64,0.27);
+  --col-sel-strip: rgba(240,160,64,0.17);
+
+  /* ── Misc ── */
+  --scrim:   rgba(0,0,0,0.55);
+  --playing: rgba(255,255,255,0.87);
+
+  /* ── Geometry ── */
+  --cell-w: 38px; --cell-h: 30px;
+
+  /* ── Typography ── */
+  --font-mono: 'Menlo','Monaco','Consolas',monospace;
+  --font-ui:   var(--font-mono); /* overridable by host via hat:set-theme vars; defaults to mono */
+}
