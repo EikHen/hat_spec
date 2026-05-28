@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // main.js — entry point: wires all modules, registers event listeners, runs init.
 
-import { state, setCustomPatterns, setCustomPatId, setActivePatIdx, _showNoteNums, setShowNoteNums, _selBars, _hovered } from './state.js';
+import { state, setCustomPatterns, setCustomPatId, setActivePatIdx, _showNoteNums, setShowNoteNums, _selBars, _hovered, _customPatId } from './state.js';
 import { parseHAT, PATTERNS } from './parser.js';
 import { StorageStore, ListStore, genId } from './storage.js';
 import { loadSettings, saveSettings, applySettings } from './config.js';
@@ -16,7 +16,7 @@ import {
 } from './renderer.js';
 
 import {
-  pushUndo, undo,
+  pushUndo, undo, redo,
   loadHAT, reparse, syncSourceFromModel,
   applyHit, cycleCell, toggleFlam, toggleSubdiv, toggleBeat,
   insertColBefore, insertColAfter, deleteCol, deleteSelectedBars,
@@ -24,7 +24,7 @@ import {
   selectBar, selectCol,
   cloneBar,
   copySelected, pasteSelected,
-  commitTypeBuf,
+  commitTypeBuf, setCountTok,
   setEmbedRef as editorSetEmbedRef,
   setSidebarRef as editorSetSidebarRef,
   setRendererRef as editorSetRendererRef,
@@ -122,8 +122,58 @@ rendererSetEditorRef({
   deleteSection, moveBar, moveSection,
 });
 
+// ─────────────────────────────────────────────
+//  PATTERN DELETE + UNDO/REDO
+// ─────────────────────────────────────────────
+
+const _patDeleteUndoStack = [];
+const _patDeleteRedoStack = [];
+
+function deleteActiveCustomPattern() {
+  if (!_customPatId) return;
+  const cp = StorageStore.load(_customPatId);
+  if (!cp) return;
+  _patDeleteUndoStack.push({ id: _customPatId, hat: cp.hat, title: cp.title, time: cp.time||'', grid: cp.grid||'' });
+  _patDeleteRedoStack.length = 0;
+  StorageStore.remove(_customPatId);
+  setCustomPatterns(StorageStore.list());
+  setCustomPatId(null); StorageStore.setActive(null); setActivePatIdx(-1);
+  renderPatternList();
+  const customs = StorageStore.list();
+  if (customs.length > 0) loadCustomPattern(customs[0].id);
+  else if (PATTERNS.length > 0) loadPattern(0);
+  showToast('Pattern deleted — Ctrl+Z to restore');
+}
+
+function checkPatDeleteUndo() {
+  if (!_patDeleteUndoStack.length) return false;
+  const entry = _patDeleteUndoStack.pop();
+  StorageStore.save(entry.id, entry.hat, { title: entry.title, time: entry.time, grid: entry.grid });
+  setCustomPatterns(StorageStore.list());
+  _patDeleteRedoStack.push(entry);
+  setActivePatIdx(-1); setCustomPatId(entry.id); StorageStore.setActive(entry.id);
+  loadHAT(entry.hat);
+  renderPatternList();
+  showToast('Pattern restored');
+  return true;
+}
+
+function checkPatDeleteRedo() {
+  if (!_patDeleteRedoStack.length) return;
+  const entry = _patDeleteRedoStack.pop();
+  _patDeleteUndoStack.push(entry);
+  StorageStore.remove(entry.id);
+  setCustomPatterns(StorageStore.list());
+  if (_customPatId === entry.id) { setCustomPatId(null); StorageStore.setActive(null); setActivePatIdx(-1); }
+  renderPatternList();
+  const customs = StorageStore.list();
+  if (customs.length > 0) loadCustomPattern(customs[0].id);
+  else if (PATTERNS.length > 0) loadPattern(0);
+  showToast('Pattern re-deleted — Ctrl+Z to restore');
+}
+
 editorSetEmbedRef({ _emitPatternChanged, _postToHost });
-editorSetSidebarRef({ _listUndoStack, ListStore, renderListPills, renderPatternList });
+editorSetSidebarRef({ _listUndoStack, ListStore, renderListPills, renderPatternList, checkPatDeleteUndo, checkPatDeleteRedo });
 editorSetRendererRef({ refreshCellEl, showToast });
 
 audioSetEmbedRef({ _postToHost });
@@ -156,10 +206,11 @@ function addSection() {
 }
 
 shortcutsSetEditorRef({
-  pushUndo, undo, addSection,
+  pushUndo, undo, redo, addSection,
   applyHit, cycleCell, toggleFlam, toggleSubdiv, toggleBeat,
   insertColBefore, insertColAfter, deleteCol, deleteSelectedBars,
   copySelected, pasteSelected, commitTypeBuf,
+  setCountTok, deleteActiveCustomPattern,
 });
 shortcutsSetAudioRef({
   get _playing() { return _playing; },
@@ -238,21 +289,22 @@ document.getElementById('btn-collapse-all').onclick = () => {
 // New pattern modal
 document.getElementById('btn-new').onclick = () => {
   document.getElementById('np-title').value = '';
-  document.getElementById('np-time').value = '4/4';
-  document.getElementById('np-grid').value = '8th';
+  document.getElementById('np-fields').value = '8';
   document.getElementById('np-bpm').value = '120';
   document.getElementById('new-pat-modal').classList.add('show');
   document.getElementById('np-title').focus();
 };
 document.getElementById('np-cancel').onclick = () => document.getElementById('new-pat-modal').classList.remove('show');
 document.getElementById('np-ok').onclick = () => {
-  const title = document.getElementById('np-title').value.trim() || 'Untitled';
-  const time  = document.getElementById('np-time').value;
-  const grid  = document.getElementById('np-grid').value;
-  const bpm   = document.getElementById('np-bpm').value;
-  const id    = genId();
-  const hat = `;;HAT v1.3.4\n;;title: ${title}\n;;time: ${time}\n;;grid: ${grid}\n;;tempo: ${bpm}\n\nR: ||| -   -   || -   -   || -   -   || -   -   |||\nL: ||| -   -   || -   -   || -   -   || -   -   |||`;
-  StorageStore.save(id, hat, { title, time, grid });
+  const title  = document.getElementById('np-title').value.trim() || 'Untitled';
+  const bpm    = document.getElementById('np-bpm').value;
+  const fields = Math.max(1, Math.min(64, parseInt(document.getElementById('np-fields').value) || 8));
+  const t4 = '.   ', r4 = '-   ';
+  const cToks = Array(fields).fill(t4).join('');
+  const rToks = Array(fields).fill(r4).join('');
+  const id  = genId();
+  const hat = `;;HAT v1.3.4\n;;title: ${title}\n;;tempo: ${bpm}\n\nC: ||| ${cToks}|||\nR: ||| ${rToks}|||\nL: ||| ${rToks}|||`;
+  StorageStore.save(id, hat, { title });
   setCustomPatterns(StorageStore.list());
   setActivePatIdx(-1); setCustomPatId(id); StorageStore.setActive(id);
   loadHAT(hat);
@@ -414,6 +466,37 @@ document.getElementById('notes-ok').onclick = () => {
 document.getElementById('notes-overlay').onclick = e => {
   if (e.target === document.getElementById('notes-overlay')) document.getElementById('notes-overlay').classList.remove('show');
 };
+
+// Inline title edit on double-click
+document.getElementById('card-title').addEventListener('dblclick', () => {
+  if (!state.parsed?.ok) return;
+  const el = document.getElementById('card-title');
+  const orig = el.textContent;
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.value = state.parsed.meta.title || '';
+  inp.style.cssText = 'font-size:13px;font-weight:700;background:var(--bg3);color:var(--fg);border:1px solid var(--accent);border-radius:3px;padding:1px 4px;width:180px;outline:none;';
+  el.replaceWith(inp); inp.focus(); inp.select();
+  let committed = false;
+  function commit() {
+    if (committed) return; committed = true;
+    const v = inp.value.trim() || 'Untitled';
+    const span = document.createElement('span'); span.id = 'card-title'; span.textContent = v;
+    inp.replaceWith(span);
+    if (!state.parsed?.ok) return;
+    pushUndo(); state.parsed.meta.title = v;
+    syncSourceFromModel();
+  }
+  function cancel() {
+    if (committed) return; committed = true;
+    const span = document.createElement('span'); span.id = 'card-title'; span.textContent = orig;
+    inp.replaceWith(span);
+  }
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.stopPropagation(); commit(); }
+    if (e.key === 'Escape') { e.stopPropagation(); cancel(); }
+  });
+  inp.addEventListener('blur', commit);
+});
 
 // Source panel toggle
 (function initSourceToggle() {

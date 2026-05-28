@@ -44,13 +44,21 @@ export function initGridEvents(EMBED_MODE) {
       document.body.tabIndex = -1;
       document.body.focus({ preventScroll: true });
     }
-    const el = e.target.closest('.hat-cell'); if (!el) return;
-    if (_hovered?.el) _hovered.el.classList.remove('hovered');
-    setHovered({ el, sec: +el.dataset.sec, bar: +el.dataset.bar, col: +el.dataset.col, hand: el.dataset.hand });
-    el.classList.add('hovered');
-    if (_paintDown && _paintKey !== null && state.parsed?.ok) {
-      const { applyHit } = _editorRef;
-      if (applyHit) applyHit(_hovered.sec, _hovered.bar, _hovered.col, _hovered.hand, _paintKey);
+    const el = e.target.closest('.hat-cell');
+    if (el) {
+      if (_hovered?.el) _hovered.el.classList.remove('hovered');
+      setHovered({ el, sec: +el.dataset.sec, bar: +el.dataset.bar, col: +el.dataset.col, hand: el.dataset.hand });
+      el.classList.add('hovered');
+      if (_paintDown && _paintKey !== null && state.parsed?.ok) {
+        const { applyHit } = _editorRef;
+        if (applyHit) applyHit(_hovered.sec, _hovered.bar, _hovered.col, _hovered.hand, _paintKey);
+      }
+      return;
+    }
+    const cnt = e.target.closest('.count-cell');
+    if (cnt && cnt.dataset.col !== undefined) {
+      if (_hovered?.el) _hovered.el.classList.remove('hovered');
+      setHovered({ el: null, sec: +cnt.dataset.sec, bar: +cnt.dataset.bar, col: +cnt.dataset.col, hand: _hovered?.hand || 'R' });
     }
   });
 
@@ -89,9 +97,10 @@ export function initKeyboard() {
   document.addEventListener('keydown', e => {
     const inInput = ['TEXTAREA','INPUT'].includes(document.activeElement.tagName);
     const {
-      pushUndo, undo, copySelected, pasteSelected, deleteSelectedBars,
+      pushUndo, undo, redo, copySelected, pasteSelected, deleteSelectedBars,
       applyHit, toggleFlam, toggleSubdiv, toggleBeat,
       insertColBefore, insertColAfter, deleteCol, commitTypeBuf,
+      setCountTok, deleteActiveCustomPattern,
     } = _editorRef;
     const { openNotePicker, openChordPicker, renderPatternList } = _rendererRef;
     const { _playing, startPlayback, stopPlayback } = _audioRef;
@@ -118,7 +127,7 @@ export function initKeyboard() {
 
     // Ctrl/Meta combos
     if ((e.ctrlKey || e.metaKey) && !inInput) {
-      if (e.key === 'z') { e.preventDefault(); if (undo) undo(); return; }
+      if (e.key === 'z') { e.preventDefault(); if (e.shiftKey) { if (redo) redo(); } else { if (undo) undo(); } return; }
       if (e.key === 'c') { e.preventDefault(); if (copySelected) copySelected(); return; }
       if (e.key === 'v') { e.preventDefault(); if (pasteSelected) pasteSelected(); return; }
       if (e.key === 'Enter') { e.preventDefault(); if (_editorRef.addSection) _editorRef.addSection(); return; }
@@ -142,6 +151,13 @@ export function initKeyboard() {
     if (_selBars.size > 0 && (e.key === 'Delete' || e.key === 'Backspace' || e.key === 'x')) {
       e.preventDefault();
       if (deleteSelectedBars) deleteSelectedBars();
+      return;
+    }
+
+    // Backspace on active custom pattern when nothing else selected/hovered
+    if (e.key === 'Backspace' && !_hovered && !activeList && deleteActiveCustomPattern) {
+      e.preventDefault();
+      deleteActiveCustomPattern();
       return;
     }
 
@@ -180,6 +196,8 @@ export function initKeyboard() {
       case 'o': e.preventDefault(); if (insertColAfter) insertColAfter(sec, bar, col); return;
       case 'x': case 'Delete': case 'Backspace':
         e.preventDefault(); if (deleteCol) deleteCol(sec, bar, col); return;
+      case 'e': e.preventDefault(); if (setCountTok) setCountTok(sec, bar, col, 'e'); return;
+      case 'a': e.preventDefault(); if (setCountTok) setCountTok(sec, bar, col, '&'); return;
       case 'n': e.preventDefault(); if (openNotePicker) openNotePicker(_hovered.el); return;
       case 'c': {
         e.preventDefault();
@@ -199,10 +217,14 @@ export function initKeyboard() {
       }
     }
 
-    // Digit keys → buffered note input
+    // Digit keys → buffered note input, or count token when no notes defined
     if (FIELD_DIGIT_KEYS.includes(e.key)) {
       const notes = state.parsed.meta._noteNames || [];
-      if (!notes.length) return;
+      if (!notes.length) {
+        e.preventDefault();
+        if (setCountTok) setCountTok(sec, bar, col, e.key);
+        return;
+      }
       e.preventDefault();
       setTypeMode('note'); setTypeBuf(e.key); setTypeTarget({ sec, bar, col, hand });
       clearTimeout(_typeTimer);

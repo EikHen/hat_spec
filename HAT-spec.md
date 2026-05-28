@@ -124,6 +124,7 @@ An optional `C:` line immediately above an `R:` / `L:` stanza labels each grid c
 
 - Positive integers with no leading zeros (e.g. `1`, `2`, `12`)
 - The symbols `e`, `&`, and `a`
+- `.` — placeholder (cell has no count label; shown as `·`)
 
 The `C:` line must use the same `|||` / `||` structure as the accompanying `R:` / `L:` lines. The token count per beat (between `||` markers) must equal the R/L cell count for that beat. `|` sub-group markers are optional in `C:` lines.
 
@@ -137,6 +138,8 @@ The `C:` line must use the same `|||` / `||` structure as the accompanying `R:` 
 | 4th notes, any meter | `1` (1 per beat — use `||` between every cell) |
 | Asymmetric beat of 3 | `1 e &` or `1 & a` |
 | Asymmetric beat of 2 | `1 &` |
+
+**Implementation note:** Implementations are encouraged to include a `C:` line with placeholder tokens (`.`) in all generated patterns to make the count row visible by default.
 
 ---
 
@@ -575,7 +578,7 @@ R: ||| D |||
 L: ||| - |||
 ```
 
-`;;grid:` is the only required key beyond the version declaration. A single bar with a single beat containing a single cell is valid.
+`;;grid:` is optional; when absent, implementations should default to `8th`. A single bar with a single beat containing a single cell is valid.
 
 ---
 

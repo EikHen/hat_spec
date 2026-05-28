@@ -136,16 +136,16 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
 .hat-cell.col-selected { outline: 1px solid var(--col-sel-cell); }
 
 /* Count row (C: line display) */
-.count-row { display: flex; }
+.count-row { display: flex; background: rgba(128,128,128,0.05); border-radius: 2px; }
 .count-cell {
-  width: var(--cell-w); height: 14px; display: flex;
-  align-items: center; justify-content: center; font-size: 9px;
+  width: var(--cell-w); height: 18px; display: flex;
+  align-items: center; justify-content: center; font-size: 11px;
   color: var(--fg3); user-select: none; letter-spacing: -0.5px; border-radius: 2px;
 }
 .count-cell { cursor: pointer; }
 .count-cell.has-tok { color: var(--count-tok-fg); font-weight: 700; background: var(--count-tok-bg); }
 /* C: label in row-label column */
-.row-label.C { color: var(--fg3); height: 14px; font-style: italic; }
+.row-label.C { color: var(--fg3); height: 18px; font-style: italic; }
 
 /* Subdivision toggle dots/pipes — one per cell within a beat-group */
 .subdiv-row { display: flex; }
@@ -230,7 +230,7 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
   position: fixed; z-index: 500; text-align: center; outline: none;
   background: var(--bg3); color: var(--count-tok-fg);
   border: 1px solid var(--accent); border-radius: 2px; padding: 0;
-  font: 9px/1 var(--font-mono);
+  font: 11px/1 var(--font-mono);
 }
 
 /* scrollbar */

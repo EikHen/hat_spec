@@ -137,14 +137,13 @@ function makeLabelCol() {
 }
 
 // Pre-compute which bars go on each visual row given available pixel width.
-// --cell-w=38px, cell margin+border=4px per non-first cell → bar_w = 42*cols+8
-// label col = 14px, flex gap = 14px between all items in a row.
+// One label col (14px) per row; bar_block = 42*cols+8; flex gap = 14px.
 function computeRows(bars, availW) {
-  const LABEL_W=14, GAP=14;
+  const GAP=14, LABEL_W=14;
   const rows=[[]];
   let rowUsed=LABEL_W;
   for (let bi=0;bi<bars.length;bi++) {
-    const bw=42*bars[bi].cols.length+8;
+    const bw=8+42*bars[bi].cols.length;
     if (rows[rows.length-1].length>0 && rowUsed+GAP+bw>availW) {
       rows.push([]); rowUsed=LABEL_W;
     }
@@ -314,6 +313,7 @@ export function renderGrid(parsed) {
           cntCell.className='count-cell'+sepCls+(col.countTok?' has-tok':'');
           cntCell.textContent=col.countTok==='.'?'·':(col.countTok||'');
           cntCell.title='Click to edit count token';
+          cntCell.dataset.sec=si; cntCell.dataset.bar=bi; cntCell.dataset.col=ci;
           cntCell.onclick=e=>{e.stopPropagation();openCountEditor(cntCell,si,bi,ci);};
           countRow.appendChild(cntCell);
 
@@ -375,7 +375,7 @@ export function renderGrid(parsed) {
         barBlocks.push(barBlock);
       }
 
-      // Distribute bars into rows, each starting with a label column
+      // Distribute bars into rows; one label column per row
       const rows=computeRows(sec.bars,avail);
       for (const rowBis of rows) {
         const rowDiv=document.createElement('div'); rowDiv.className='hat-grid-row';
@@ -389,7 +389,7 @@ export function renderGrid(parsed) {
     wrap.appendChild(secDiv);
   }
   gridScroll.scrollTop=savedScrollTop; gridScroll.scrollLeft=savedScrollLeft;
-  if (_hovered && (!_hovered.el || !_hovered.el.isConnected)) {
+  if (_hovered && _hovered.el && !_hovered.el.isConnected) {
     const el=wrap.querySelector(`.hat-cell[data-sec="${_hovered.sec}"][data-bar="${_hovered.bar}"][data-col="${_hovered.col}"][data-hand="${_hovered.hand}"]`);
     if (el){setHovered({..._hovered,el});el.classList.add('hovered');}else setHovered(null);
   }

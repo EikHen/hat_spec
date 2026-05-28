@@ -43,13 +43,20 @@ export function pushUndo() {
 }
 
 export function undo() {
-  const { _listUndoStack, ListStore, renderListPills, renderPatternList } = _sidebarRef;
+  const { _listUndoStack, ListStore, renderListPills, renderPatternList, checkPatDeleteUndo } = _sidebarRef;
   if (activeList && _listUndoStack && _listUndoStack.length) {
     try { localStorage.setItem(ListStore.KEY, _listUndoStack.pop()); } catch(e){}
     renderListPills(); renderPatternList();
+  } else if (checkPatDeleteUndo && checkPatDeleteUndo()) {
+    // pattern deletion undone
   } else if (_undoStack.length) {
     setHovered(null); loadHAT(_undoStack.pop());
   }
+}
+
+export function redo() {
+  const { checkPatDeleteRedo } = _sidebarRef;
+  if (checkPatDeleteRedo) checkPatDeleteRedo();
 }
 
 // Late-bound sidebar ref (set by main.js)
@@ -80,6 +87,12 @@ export function cycleCell(sec, bar, col, hand) {
   const obj=getColObj(sec,bar,col), cycle=hand==='R'?CYCLE_R:CYCLE_L;
   const cur=obj[hand]?.hit||'-';
   applyHit(sec,bar,col,hand,cycle[(cycle.indexOf(cur)+1)%cycle.length]);
+}
+
+export function setCountTok(sec, bar, col, tok) {
+  const obj=getColObj(sec,bar,col);
+  pushUndo(); obj.countTok=tok||null;
+  syncSourceFromModel(); renderGrid(state.parsed);
 }
 
 export function toggleFlam(sec, bar, col, hand) {
@@ -220,6 +233,11 @@ export function reparse() {
   const m=parsed.meta;
   document.getElementById('card-title').textContent=m.title||'Untitled';
   document.getElementById('card-meta').textContent=[m.time,m.grid,m.subdivision,m.tempo?m.tempo+' BPM':''].filter(Boolean).join(' · ');
+  if (_customPatId) {
+    StorageStore.save(_customPatId, text, m);
+    setCustomPatterns(StorageStore.list());
+    if (_sidebarRef.renderPatternList) _sidebarRef.renderPatternList();
+  }
   renderGrid(parsed);
   setStatus('');
 }

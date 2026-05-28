@@ -149,6 +149,12 @@
       <div class="sc-row"><kbd>c</kbd><kbd>c</kbd><span>Chord picker popup</span></div>
     </div>
     <div class="sc-section">
+      <div class="sc-heading">Count Row</div>
+      <div class="sc-row"><kbd>1</kbd>–<kbd>9</kbd>, <kbd>0</kbd><span>Set count token (when no notes defined)</span></div>
+      <div class="sc-row"><kbd>e</kbd><span>Count token "e"</span></div>
+      <div class="sc-row"><kbd>a</kbd><span>Count token "&"</span></div>
+    </div>
+    <div class="sc-section">
       <div class="sc-heading">Structure</div>
       <div class="sc-row"><kbd>i</kbd><span>Insert column before</span></div>
       <div class="sc-row"><kbd>o</kbd><span>Insert column after</span></div>
@@ -184,12 +190,7 @@
   <div class="modal">
     <h2>New Pattern</h2>
     <label class="np-label">Title<input id="np-title" type="text" placeholder="My Pattern" maxlength="60"/></label>
-    <label class="np-label">Time signature
-      <select id="np-time"><option>4/4</option><option>3/4</option><option>5/4</option><option>6/8</option><option>7/8</option><option>12/8</option></select>
-    </label>
-    <label class="np-label">Grid
-      <select id="np-grid"><option>8th</option><option>4th</option><option>16th</option></select>
-    </label>
+    <label class="np-label">Fields<input id="np-fields" type="number" min="1" max="64" value="8"/></label>
     <label class="np-label">BPM<input id="np-bpm" type="number" min="40" max="240" value="120"/></label>
     <div class="modal-btns">
       <button id="np-cancel">Cancel</button>
