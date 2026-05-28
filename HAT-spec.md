@@ -12,7 +12,7 @@ A plain-text notation system for handpan rhythms. Human-readable in monospace fo
 | v1.3.1 | `triplet-4th` grid; `;;x-*:` extension namespace; `t`/`k` muted-tak symbols; compound-meter clarification; `%% %%` block comments; subdivision mismatch is now a hard parse error |
 | v1.3.2 | `;;notes:` + `;;note-numbers:` fields; numeric note aliases in tablature (1–3 digit numbers) |
 | v1.3.3 | `;;fields:` removed — superseded by `;;notes:` |
-| v1.3.4 | Separator hierarchy redesigned: `\|` visual-only, `\|\|` beat boundary, `\|\|\|` bar boundary; formal BPM definition via beat groups; optional `C:` subdivision-count line |
+| v1.3.4 | Separator hierarchy redesigned: `\|` visual-only, `\|\|` beat boundary, `\|\|\|` bar boundary; formal BPM definition via beat groups; optional `C:` subdivision-count line; `//` line comment syntax |
 
 ---
 
@@ -230,6 +230,10 @@ Any `;;` key beginning with `x-` is a private extension. Parsers must silently p
 
 ### §6.1 Note-number aliases
 
+**Display rendering:** Tablature notation always uses note names (e.g. `D4`, `F#4`), never numeric indices, regardless of the display mode of the rendering tool. Chord split-field display (the top-left and bottom-right corners of a chord cell) follows the rendering tool's names/numbers setting — tools that display note numbers should show the aliased numbers in chord split-fields rather than note names.
+
+
+
 When `;;notes:` and `;;note-numbers:` are both present, each note name in `;;notes:` is aliased by the corresponding number in `;;note-numbers:`. In the tablature body, a 1–3 digit decimal number is treated exactly like the note name it aliases.
 
 **Constraints:**
@@ -268,6 +272,18 @@ Compliant tools that emit these fields **should** produce this layout.
 
 ## 8. Comments
 
+### Line comments — `//`
+
+Any line whose first non-whitespace characters are `//` is a **line comment** and is silently discarded before any other processing. `//` comments are distinct from `%` extension lines: a `%` line may carry extension data; a `//` line is always ignored.
+
+```
+// This is a comment — silently ignored by all parsers
+;;HAT v1.3.4
+// Comments may appear anywhere: before headers, between stanzas, after the body
+R: ||| D - |||
+L: ||| - K |||
+```
+
 ### Inline comments — `%`
 
 `%` starts a comment running to end of line. Valid anywhere in a body line or on its own line.
@@ -278,7 +294,7 @@ Compliant tools that emit these fields **should** produce this layout.
 
 `%%` opens a block comment; the next `%%` closes it. Everything between (including newlines) is stripped.
 
-**Processing order:** block comments are stripped first (global pass), then inline `%` comments are stripped line by line, then parsing proceeds.
+**Processing order:** `//` line comments are discarded first (line-by-line pass), then block comments are stripped (global pass), then inline `%` comments are stripped line by line, then parsing proceeds.
 
 ---
 
@@ -306,14 +322,17 @@ Output: metadata dict + list of sections,
 
 ── Pre-processing ──────────────────────────────────────────────────────────
 
-1. Strip block comments: remove all content between "%%" pairs.
+1. Discard line comments: remove any line whose first non-whitespace
+   characters are "//". These lines are gone before any other processing.
 
-2. Strip inline comments: for each non-";;" line, remove from first "%" to
+2. Strip block comments: remove all content between "%%" pairs.
+
+3. Strip inline comments: for each non-";;" line, remove from first "%" to
    end of line; discard empty results.
 
 ── Version detection ───────────────────────────────────────────────────────
 
-3. Read the first ";;" line. If it is ";;HAT v1.3.4" or later, apply the
+4. Read the first ";;" line. If it is ";;HAT v1.3.4" or later, apply the
    v1.3.4 separator semantics (||| = bar, || = beat, | = visual).
    If it is ";;HAT v1.3.3" or earlier, apply legacy semantics
    (|| = bar, | = subdivision group — both carry formal constraints).
@@ -321,7 +340,7 @@ Output: metadata dict + list of sections,
 
 ── Parsing ─────────────────────────────────────────────────────────────────
 
-4. Scan lines top-to-bottom. Maintain: current_section (default unnamed).
+5. Scan lines top-to-bottom. Maintain: current_section (default unnamed).
 
    ";;HAT v…"         → set version.
    ";;x-<key>: <val>" → store in metadata, take no further action.
@@ -334,11 +353,11 @@ Output: metadata dict + list of sections,
 
 ── Stanza assembly (v1.3.4 semantics) ──────────────────────────────────────
 
-5. Within each section, pair consecutive R:/L: lines into stanzas.
+6. Within each section, pair consecutive R:/L: lines into stanzas.
    A preceding C: line (if any) belongs to that stanza.
    Unpaired R: or L: lines are a parse error.
 
-6. For each stanza, process R and L (and optional C) in parallel:
+7. For each stanza, process R and L (and optional C) in parallel:
 
    a. Strip the "R:" / "L:" / "C:" prefix.
 
@@ -381,7 +400,7 @@ Output: metadata dict + list of sections,
 
 ── Beat metadata ────────────────────────────────────────────────────────────
 
-7. For each stanza, record for each timestep:
+8. For each stanza, record for each timestep:
      bar_index       — 0-based bar number
      beat_index      — 0-based beat within bar
      col_index       — 0-based cell within beat
@@ -390,11 +409,11 @@ Output: metadata dict + list of sections,
 
 ── Validation ──────────────────────────────────────────────────────────────
 
-8. Column constraints (per timestep i):
+9. Column constraints (per timestep i):
      All four column types are valid:
        (active, -)    (-, active)    (active, active)    (-, -)
 
-9. Note validation (applied after header parsing):
+10. Note validation (applied after header parsing):
      If ";;notes:" is present, every note name used in the body must
      appear in that list → PARSE ERROR otherwise.
      If exactly one of ";;notes:" / ";;note-numbers:" is present → PARSE ERROR.
@@ -402,7 +421,7 @@ Output: metadata dict + list of sections,
 
 ── Emission ────────────────────────────────────────────────────────────────
 
-10. For each section, emit its stanzas repeated `repeat` times.
+11. For each section, emit its stanzas repeated `repeat` times.
     Each timestep (R_cell, L_cell) has duration = cell_duration(grid).
     One beat = cells_per_beat × cell_duration; tempo = beats per minute.
 

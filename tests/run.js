@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // HAT parser conformance test suite
-// Extracts parseHAT / serializeHAT from src/editor.html via Node vm.
+// Loads parseHAT / serializeHAT from src/js/parser.js via Node vm.
 // Run: node tests/run.js
 
 'use strict';
@@ -8,18 +8,11 @@ const fs   = require('fs');
 const path = require('path');
 const vm   = require('vm');
 
-// ── Load editor and extract parser functions ──────────────────────────────
+// ── Load parser functions from src/js/parser.js ───────────────────────────
 
-const editorPath = path.resolve(__dirname, '../src/editor.html');
-const html = fs.readFileSync(editorPath, 'utf8');
-const m = html.match(/<script>([\s\S]*?)<\/script>/);
-if (!m) { console.error('Could not find <script> in editor.html'); process.exit(1); }
-
-// Extract only the parser/serializer section — everything before the BUILT-IN PATTERNS block.
-// This avoids running DOM manipulation code that requires a browser environment.
-const scriptFull = m[1].replace(/^'use strict';/, '');
-const cutAt = scriptFull.indexOf('// ─────────────────────────────────────────────\n//  BUILT-IN PATTERNS');
-const parserCode = cutAt > 0 ? scriptFull.slice(0, cutAt) : scriptFull;
+const parserPath = path.resolve(__dirname, '../src/js/parser.js');
+// Strip ES module export keywords so the code runs in a plain vm context
+const parserCode = fs.readFileSync(parserPath, 'utf8').replace(/\bexport\s+(default\s+)?/g, '');
 
 const sandbox = {};
 vm.createContext(sandbox);

@@ -1,12 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Web Audio: getActx, playHit, scheduleLoop, startPlayback, stopPlayback.
 
-import { state } from './state.js';
+import { state, getSelCols } from './state.js';
 
 export let _playing = false;
 let _actx=null, _noiseBuf=null;
 let _stepIdx=0, _nextStepTime=0, _schedTimer=null, _phRaf=null;
 const LOOKAHEAD=0.12, SCHED_MS=40;
+
+// Ring buffer for playhead sync — records (stepIdx, scheduledTime) for each step.
+// animatePlayhead walks this to find the step closest to actx.currentTime - latency.
+const RING_SIZE=64;
+const _ring=new Array(RING_SIZE);
+let _ringHead=0, _ringCount=0;
 
 // Late-bound embed ref (set by main.js to avoid circular import)
 export const _embedRef = {};
@@ -88,20 +94,32 @@ export function gridStepSec() {
   return 60/(bpm*(grid==='4th'?1:grid==='16th'?4:2));
 }
 
+function ringPush(stepIdx, scheduledTime) {
+  _ring[_ringHead % RING_SIZE] = { stepIdx, scheduledTime };
+  _ringHead++;
+  if (_ringCount < RING_SIZE) _ringCount++;
+}
+
+function ringClear() { _ringHead=0; _ringCount=0; }
+
 function scheduleLoop() {
   if (!_playing||!state.parsed?.ok) return;
   const actx=getActx(), cols=state.parsed.cols;
   if (!cols?.length) return;
+  // Resume if context was suspended by browser (autoplay policy / inactivity)
+  if (actx.state==='suspended') actx.resume().catch(()=>{});
   const step=gridStepSec();
   while (_nextStepTime<actx.currentTime+LOOKAHEAD) {
-    const col=cols[_stepIdx%cols.length];
+    const colIdx=_stepIdx%cols.length;
+    const col=cols[colIdx];
+    ringPush(colIdx, _nextStepTime);
     if (col) {
       const tOffMs=(_nextStepTime-actx.currentTime)*1000;
       const barIdx=Math.floor(_stepIdx/cols.length);
       const { _postToHost } = _embedRef;
       if (_postToHost) {
-        if (col.R?.hit && col.R.hit!=='-') _postToHost({type:'hat:hit',hand:'R',symbol:col.R.hit,isNote:col.R.hit.length>1,colIndex:_stepIdx%cols.length,barIndex:barIdx,tOffsetMs:tOffMs});
-        if (col.L?.hit && col.L.hit!=='-') _postToHost({type:'hat:hit',hand:'L',symbol:col.L.hit,isNote:col.L.hit.length>1,colIndex:_stepIdx%cols.length,barIndex:barIdx,tOffsetMs:tOffMs});
+        if (col.R?.hit && col.R.hit!=='-') _postToHost({type:'hat:hit',hand:'R',symbol:col.R.hit,isNote:col.R.hit.length>1,colIndex:colIdx,barIndex:barIdx,tOffsetMs:tOffMs});
+        if (col.L?.hit && col.L.hit!=='-') _postToHost({type:'hat:hit',hand:'L',symbol:col.L.hit,isNote:col.L.hit.length>1,colIndex:colIdx,barIndex:barIdx,tOffsetMs:tOffMs});
       }
       playHit(actx,_nextStepTime,col.R?.hit); playHit(actx,_nextStepTime,col.L?.hit);
     }
@@ -120,20 +138,29 @@ function highlightCol(idx) {
 
 function animatePlayhead() {
   if (!_playing) return;
-  if (_actx&&state.parsed?.cols?.length) {
-    const step=gridStepSec(), n=state.parsed.cols.length;
-    const startTime=_nextStepTime-_stepIdx*step;
+  if (_actx && state.parsed?.cols?.length && _ringCount > 0) {
     const latency=(_actx.outputLatency||0)+(_actx.baseLatency||0);
-    const cur=Math.floor((_actx.currentTime-latency-startTime)/step)%n;
-    if (cur>=0&&cur<n) highlightCol(cur);
+    const now=_actx.currentTime - latency;
+    // Walk the ring buffer to find the entry whose scheduledTime is closest to now
+    let bestIdx=-1, bestDiff=Infinity;
+    const start=Math.max(0, _ringHead - _ringCount);
+    for (let i=start; i<_ringHead; i++) {
+      const entry=_ring[i % RING_SIZE];
+      const diff=now - entry.scheduledTime;
+      if (diff >= 0 && diff < bestDiff) { bestDiff=diff; bestIdx=entry.stepIdx; }
+    }
+    if (bestIdx >= 0) highlightCol(bestIdx);
   }
   _phRaf=requestAnimationFrame(animatePlayhead);
 }
 
 export function startPlayback() {
   if (!state.parsed?.ok) return;
-  const actx=getActx(); if (actx.state==='suspended') actx.resume();
-  _stepIdx=0; _nextStepTime=actx.currentTime+0.05; _playing=true;
+  const actx=getActx(); if (actx.state==='suspended') actx.resume().catch(()=>{});
+  const selCols=getSelCols();
+  const startIdx=selCols.size>0?Math.min(...selCols):0;
+  ringClear();
+  _stepIdx=startIdx; _nextStepTime=actx.currentTime+0.05; _playing=true;
   document.getElementById('play-btn').textContent='⏹';
   _schedTimer=setInterval(scheduleLoop,SCHED_MS); animatePlayhead();
   const { _postToHost } = _embedRef;
@@ -142,7 +169,15 @@ export function startPlayback() {
 
 export function stopPlayback() {
   _playing=false; clearInterval(_schedTimer); cancelAnimationFrame(_phRaf);
+  ringClear();
   document.getElementById('play-btn').textContent='▶'; highlightCol(-1);
   const { _postToHost } = _embedRef;
   if (_postToHost) _postToHost({type:'hat:playback-state',playing:false,bpm:state.parsed?.meta?.tempo||120,grid:state.parsed?.meta?.grid||'8th'});
 }
+
+// Resume audio context when page becomes visible (e.g. returning from another tab)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && _playing && _actx) {
+    _actx.resume().catch(()=>{});
+  }
+});

@@ -61,3 +61,4 @@ export function setTypeTimer(v) { _typeTimer = v; }
 export function setTypeTarget(v) { _typeTarget = v; }
 export function setLastCPress(v) { _lastCPress = v; }
 export function setShowNoteNums(v) { _showNoteNums = v; }
+export function getSelCols() { return _selCols; }

@@ -1,0 +1,13 @@
+// This is a comment — should be silently ignored
+;;HAT v1.3.4
+// Another comment before the title
+;;title: Comment Test
+;;time: 4/4
+;;grid: 8th
+
+// Comment between header and body
+C: ||| 1   &   || 2   &   || 3   &   || 4   &   |||
+R: ||| D   -   || •   -   || D   -   || T   -   |||
+// Inline comment in body — should be ignored
+L: ||| -   K   || -   K   || -   •   || -   •   |||
+// Trailing comment

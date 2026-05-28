@@ -2,7 +2,6 @@
 // Grid rendering, cell helpers, UI popups, toast.
 
 import { state, _selBars, _selCols, _hovered, _showNoteNums, setHovered } from './state.js';
-import { FIELD_LETTER_KEYS } from './parser.js';
 
 // ─────────────────────────────────────────────
 //  CELL HELPERS
@@ -43,13 +42,25 @@ export function cellText(c) {
   return hit+mod;
 }
 
+function nameToNum(name) {
+  const meta=state.parsed?.meta;
+  if (!meta) return name;
+  if (meta._noteMap) {
+    for (const [num,n] of Object.entries(meta._noteMap)) { if (n===name) return num; }
+  }
+  if (meta._noteNames) { const idx=meta._noteNames.indexOf(name); if (idx>=0) return String(idx+1); }
+  return name;
+}
+
 export function setCellContent(el, cell) {
   if (cell && /^c\d+$/.test(cell.hit)) {
     const def = state.parsed?.meta?.[`x-chord-${cell.hit.slice(1)}`];
     if (def) {
       const notes = def.trim().split(/\s+/);
-      const a = escHtml(notes[0] || '');
-      const b = escHtml(notes[notes.length - 1] || '');
+      // Chord split-field display follows the editor's names/numbers setting.
+      const fmt = _showNoteNums ? n => escHtml(nameToNum(n)) : n => escHtml(n);
+      const a = fmt(notes[0] || '');
+      const b = fmt(notes[notes.length - 1] || '');
       el.innerHTML = `<span class="ch-tl">${a}</span><span class="ch-br">${b}</span>`;
       return;
     }
@@ -451,7 +462,7 @@ export function openSectionLabelEditor(lblEl, si) {
 export function fieldKeyBadge(i) {
   if (i<9) return String(i+1);
   if (i===9) return '0';
-  const li=i-10; return li<FIELD_LETTER_KEYS.length?FIELD_LETTER_KEYS[li]:'';
+  return ''; // Notes 11+ have no default keyboard shortcut
 }
 
 export function openNotePicker(targetEl) {
