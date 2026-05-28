@@ -121,6 +121,7 @@ export function initKeyboard() {
       if (e.key === 'z') { e.preventDefault(); if (undo) undo(); return; }
       if (e.key === 'c') { e.preventDefault(); if (copySelected) copySelected(); return; }
       if (e.key === 'v') { e.preventDefault(); if (pasteSelected) pasteSelected(); return; }
+      if (e.key === 'Enter') { e.preventDefault(); if (_editorRef.addSection) _editorRef.addSection(); return; }
       return;
     }
     if (e.ctrlKey || e.metaKey || inInput) return;

@@ -11,20 +11,51 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
 
 /* ── HAT grid ── */
 .hat-section { }
-.section-label {
-  font-size: 11px; color: var(--fg3); margin-bottom: 6px;
-  text-transform: uppercase; letter-spacing: 0.06em;
-  cursor: pointer; display: inline-block;
-}
+/* ── Section header ── */
+.section-header { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; min-height: 20px; }
+.sec-collapse-btn { background: none; border: none; color: var(--fg3); cursor: pointer; font-size: 10px; padding: 0 2px; line-height: 1; flex-shrink: 0; }
+.sec-collapse-btn:hover { color: var(--fg2); }
+.section-label { font-size: 11px; color: var(--fg3); text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 4px; }
+.section-label.label-empty { opacity: 0.35; font-style: italic; text-transform: none; }
 .section-label:hover { color: var(--fg2); }
-.section-add-bar {
-  font-size: 10px; padding: 1px 7px; margin-top: 4px; color: var(--fg3);
-  border-color: var(--border); display: inline-block;
+.sec-bar-count { font-size: 10px; color: var(--fg3); opacity: 0.6; flex-shrink: 0; }
+.sec-del-btn { background: none; border: 1px solid transparent; border-radius: 3px; color: var(--fg3); cursor: pointer; font-size: 13px; line-height: 1; padding: 0 3px; flex-shrink: 0; opacity: 0; transition: opacity 0.1s; }
+.section-header:hover .sec-del-btn { opacity: 1; }
+.sec-del-btn:hover { color: #f06060; border-color: #f06060; background: rgba(240,96,96,0.1); }
+.sec-drag-handle { color: var(--fg3); cursor: grab; font-size: 13px; padding: 0 2px; flex-shrink: 0; opacity: 0; line-height: 1; transition: opacity 0.1s; }
+.section-header:hover .sec-drag-handle { opacity: 0.5; }
+.sec-drag-handle:hover { opacity: 1 !important; color: var(--accent); cursor: grab; }
+
+/* Grid-area action buttons (+ Bar, + Section) in edit-toolbar */
+.grid-action-btn { font-size: 10px; padding: 1px 7px; color: var(--fg3); border-color: var(--border); }
+.grid-action-btn:hover { color: var(--fg2); background: var(--bg4); }
+
+/* ── Bar reorder handle (left side, absolute) ── */
+.bar-order-handle {
+  position: absolute; left: -5px; top: 10%; bottom: 10%; width: 10px;
+  cursor: grab; z-index: 3; display: flex; align-items: center; justify-content: center;
 }
-/* Bars sit in a flex row; large gap between bar boxes (bars are the primary structure) */
-.hat-grid { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+.bar-order-handle::after {
+  content: ''; display: block; width: 3px; height: 100%; border-radius: 2px;
+  background: repeating-linear-gradient(to bottom, var(--fg3) 0px, var(--fg3) 3px, transparent 3px, transparent 6px);
+  opacity: 0.2; transition: opacity 0.12s;
+}
+.bar-order-handle:hover::after { opacity: 0.85;
+  background: repeating-linear-gradient(to bottom, var(--accent) 0px, var(--accent) 3px, transparent 3px, transparent 6px);
+}
+
+/* ── Drag states ── */
+.bar-block.bar-dragging { opacity: 0.35; }
+.bar-block.bar-drop-before { box-shadow: -3px 0 0 var(--accent); }
+.bar-block.bar-drop-after  { box-shadow:  3px 0 0 var(--accent); }
+.hat-section.sec-dragging   { opacity: 0.35; }
+.hat-section.sec-drop-before { box-shadow: 0 -2px 0 var(--accent); }
+.hat-section.sec-drop-after  { box-shadow: 0  2px 0 var(--accent); }
+/* .hat-grid is a column of rows; each .hat-grid-row is one visual line of bars */
+.hat-grid { display: flex; flex-direction: column; gap: 8px; }
+.hat-grid-row { display: flex; gap: 14px; align-items: flex-start; }
 /* bar = a visible box — the primary structural unit */
-.bar-block { display: flex; flex-direction: column; gap: 2px; background: var(--bar-bg); border: 1px solid var(--bar-border); border-radius: 5px; padding: 4px 5px; }
+.bar-block { display: flex; flex-direction: column; gap: 2px; background: var(--bar-bg); border: 1px solid var(--bar-border); border-radius: 5px; padding: 4px 5px; position: relative; }
 .bar-num { font-size: 10px; color: var(--fg3); text-align: center; padding-bottom: 2px; }
 
 /* bar-rows: flat flex-column containing all rows for one bar */
@@ -139,14 +170,29 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
 .colsel-cell:hover { background: var(--bg4); }
 .colsel-cell.col-selected { background: var(--col-sel-strip); }
 
-/* Bar +/- controls */
-.bar-ctrls { display: flex; justify-content: center; gap: 4px; padding-top: 2px; }
-.bar-ctrl-btn {
-  font-size: 14px; line-height: 1; width: 20px; height: 18px; padding: 0;
+/* Bar drag handle (replaces +/- buttons) */
+.bar-drag-handle {
+  position: absolute; right: -5px; top: 10%; bottom: 10%; width: 10px;
+  cursor: col-resize; z-index: 3;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 3px; color: var(--fg3);
 }
-.bar-ctrl-btn:hover { color: var(--accent); border-color: var(--accent); }
+.bar-drag-handle::after {
+  content: '';
+  display: block; width: 3px; height: 100%; border-radius: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--fg3) 0px, var(--fg3) 3px,
+    transparent 3px, transparent 6px
+  );
+  opacity: 0.3; transition: opacity 0.12s, background 0.12s;
+}
+.bar-drag-handle:hover::after { opacity: 0.85; background: var(--accent);
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--accent) 0px, var(--accent) 3px,
+    transparent 3px, transparent 6px
+  );
+}
 
 /* Note picker popup */
 .note-popup {
@@ -231,6 +277,16 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
   white-space: nowrap; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
 }
 #toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Shortcuts toggle button in toolbar ── */
+#btn-shortcuts {
+  background: none; border: 1px solid var(--border); border-radius: 50%;
+  width: 20px; height: 20px; padding: 0; line-height: 1;
+  font-size: 12px; font-weight: 700; color: var(--fg3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+#btn-shortcuts:hover { border-color: var(--accent); color: var(--accent); }
+#btn-shortcuts.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
 /* ── Shortcut panel ── */
 #shortcut-panel {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // main.js — entry point: wires all modules, registers event listeners, runs init.
 
-import { state, setCustomPatterns, setCustomPatId, setActivePatIdx, _showNoteNums, setShowNoteNums } from './state.js';
+import { state, setCustomPatterns, setCustomPatId, setActivePatIdx, _showNoteNums, setShowNoteNums, _selBars, _hovered } from './state.js';
 import { parseHAT, PATTERNS } from './parser.js';
 import { StorageStore, ListStore, genId } from './storage.js';
 import { loadSettings, saveSettings, applySettings } from './config.js';
@@ -11,6 +11,8 @@ import {
   openNotePicker, openChordPicker, openCountEditor, openSectionLabelEditor,
   refreshCellEl,
   setEditorRef as rendererSetEditorRef,
+  setGridScrollWidth,
+  clearCollapsedSections, remapCollapsedAfterMove, toggleCollapseAll,
 } from './renderer.js';
 
 import {
@@ -37,6 +39,7 @@ import {
   buildSidebar, renderPatternList, renderListPills,
   loadPattern, loadCustomPattern,
   setEditorRef as sidebarSetEditorRef,
+  initSidebarUI,
 } from './sidebar.js';
 
 import {
@@ -58,13 +61,65 @@ import { _listUndoStack } from './storage.js';
 //  WIRE CROSS-MODULE LATE-BOUND REFS
 // ─────────────────────────────────────────────
 
+function deleteSection(si) {
+  if (!state.parsed?.ok) return;
+  pushUndo();
+  state.parsed.sections.splice(si, 1);
+  if (!state.parsed.sections.length) {
+    const empty=()=>({R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null});
+    state.parsed.sections=[{label:'',bars:[{cols:[empty()]}]}];
+  }
+  clearCollapsedSections();
+  syncSourceFromModel(); renderGrid(state.parsed);
+}
+
+function moveBar(fromSi, fromBi, toSi, toBi) {
+  if (!state.parsed?.ok) return;
+  let actualTo = toBi;
+  if (fromSi === toSi) {
+    if (actualTo === fromBi || actualTo === fromBi+1) return;
+    if (actualTo > fromBi) actualTo--;
+  }
+  pushUndo();
+  const [bar] = state.parsed.sections[fromSi].bars.splice(fromBi, 1);
+  state.parsed.sections[toSi].bars.splice(actualTo, 0, bar);
+  state.parsed.sections = state.parsed.sections.filter(s => s.bars.length > 0);
+  if (!state.parsed.sections.length) {
+    const empty=()=>({R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null});
+    state.parsed.sections=[{label:'',bars:[{cols:[empty()]}]}];
+  }
+  syncSourceFromModel(); renderGrid(state.parsed);
+}
+
+function moveSection(fromSi, toSi) {
+  if (!state.parsed?.ok) return;
+  if (fromSi === toSi || fromSi+1 === toSi) return;
+  pushUndo();
+  const [sec] = state.parsed.sections.splice(fromSi, 1);
+  const actualTo = toSi > fromSi ? toSi-1 : toSi;
+  state.parsed.sections.splice(actualTo, 0, sec);
+  remapCollapsedAfterMove(fromSi, actualTo);
+  syncSourceFromModel(); renderGrid(state.parsed);
+}
+
+function addBarToCurrentSection() {
+  if (!state.parsed?.ok) return;
+  let si = state.parsed.sections.length - 1;
+  if (_selBars.size > 0) { si = +[..._selBars][0].split('-')[0]; }
+  else if (_hovered) { si = _hovered.sec; }
+  pushUndo();
+  const empty = () => ({R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null});
+  state.parsed.sections[si].bars.push({cols:[empty()]});
+  syncSourceFromModel(); renderGrid(state.parsed);
+}
+
 rendererSetEditorRef({
   pushUndo, syncSourceFromModel,
   selectBar, selectCol,
   addColToBar, removeLastColFromBar,
   toggleBeat, toggleSubdiv,
-  cloneBar,
   openCountEditor, openSectionLabelEditor,
+  deleteSection, moveBar, moveSection,
 });
 
 editorSetEmbedRef({ _emitPatternChanged, _postToHost });
@@ -78,8 +133,30 @@ sidebarSetEditorRef({ loadHAT });
 embedSetEditorRef({ loadHAT, syncSourceFromModel, renderGrid, parseHAT });
 embedSetSidebarRef({ buildSidebar, showToast });
 
+function addSection() {
+  if (!state.parsed?.ok) return;
+  const label = window.prompt('Section name:', '');
+  if (label === null) return;
+  pushUndo();
+  const empty = () => ({ R: { hit: '-', mod: null }, L: { hit: '-', mod: null }, beatStart: false, sub: false, countTok: null });
+  let splitSec = -1, splitBar = -1;
+  if (_selBars.size > 0) {
+    const key = [..._selBars].sort()[0]; [splitSec, splitBar] = key.split('-').map(Number);
+  } else if (_hovered) { splitSec = _hovered.sec; splitBar = _hovered.bar; }
+  if (splitSec >= 0) {
+    const sec = state.parsed.sections[splitSec];
+    const newBars = sec.bars.splice(splitBar);
+    state.parsed.sections.splice(splitSec + 1, 0, { label: label.trim(), bars: newBars.length ? newBars : [{ cols: [empty()] }] });
+    if (sec.bars.length === 0) state.parsed.sections.splice(splitSec, 1);
+    if (!state.parsed.sections.length) state.parsed.sections = [{ label: '', bars: [{ cols: [empty()] }] }];
+  } else {
+    state.parsed.sections.push({ label: label.trim(), bars: [{ cols: [empty()] }] });
+  }
+  syncSourceFromModel(); renderGrid(state.parsed);
+}
+
 shortcutsSetEditorRef({
-  pushUndo, undo,
+  pushUndo, undo, addSection,
   applyHit, cycleCell, toggleFlam, toggleSubdiv, toggleBeat,
   insertColBefore, insertColAfter, deleteCol, deleteSelectedBars,
   copySelected, pasteSelected, commitTypeBuf,
@@ -104,8 +181,17 @@ initKeyboard();
 document.getElementById('play-btn').onclick = () => _playing ? stopPlayback() : startPlayback();
 
 const bpmRange = document.getElementById('bpm');
-const bpmValEl = document.getElementById('bpm-val');
-bpmRange.oninput = () => { bpmValEl.textContent = bpmRange.value; };
+const bpmNum = document.getElementById('bpm-num');
+bpmRange.oninput = () => { bpmNum.value = bpmRange.value; };
+bpmNum.oninput = () => {
+  const v = +bpmNum.value;
+  if (!isNaN(v) && v >= 40 && v <= 240) bpmRange.value = v;
+};
+bpmNum.addEventListener('blur', () => {
+  const v = Math.max(40, Math.min(240, +bpmNum.value || 120));
+  bpmRange.value = v; bpmNum.value = v;
+});
+bpmNum.addEventListener('keydown', e => { if (e.key === 'Enter') bpmNum.blur(); });
 
 let _taps = [];
 document.getElementById('tap-btn').onclick = () => {
@@ -114,7 +200,7 @@ document.getElementById('tap-btn').onclick = () => {
   if (_taps.length >= 2) {
     const avg = (_taps[_taps.length - 1] - _taps[0]) / (_taps.length - 1);
     const bpm = Math.round(60000 / avg);
-    if (bpm >= 40 && bpm <= 240) { bpmRange.value = bpm; bpmValEl.textContent = bpm; }
+    if (bpm >= 40 && bpm <= 240) { bpmRange.value = bpm; bpmNum.value = bpm; }
   }
 };
 
@@ -126,31 +212,28 @@ document.getElementById('btn-note-mode').onclick = () => {
   if (state.parsed?.ok) renderGrid(state.parsed);
 };
 
-document.getElementById('btn-add-section').onclick = () => {
-  if (!state.parsed?.ok) return;
-  const label = window.prompt('Section name:', '');
-  if (label === null) return;
-  pushUndo();
-  // Import state vars at call time to get current values
-  import('./state.js').then(({ _selBars, _hovered }) => {
-    const empty = () => ({ R: { hit: '-', mod: null }, L: { hit: '-', mod: null }, beatStart: false, sub: false, countTok: null });
-    let splitSec = -1, splitBar = -1;
-    if (_selBars.size > 0) {
-      const key = [..._selBars].sort()[0]; [splitSec, splitBar] = key.split('-').map(Number);
-    } else if (_hovered) { splitSec = _hovered.sec; splitBar = _hovered.bar; }
-
-    if (splitSec >= 0) {
-      const sec = state.parsed.sections[splitSec];
-      const newBars = sec.bars.splice(splitBar);
-      state.parsed.sections.splice(splitSec + 1, 0, { label: label.trim(), bars: newBars.length ? newBars : [{ cols: [empty()] }] });
-      if (sec.bars.length === 0) state.parsed.sections.splice(splitSec, 1);
-      if (!state.parsed.sections.length) state.parsed.sections = [{ label: '', bars: [{ cols: [empty()] }] }];
-    } else {
-      state.parsed.sections.push({ label: label.trim(), bars: [{ cols: [empty()] }] });
-    }
-    syncSourceFromModel(); renderGrid(state.parsed);
-  });
+document.getElementById('btn-shortcuts').onclick = () => {
+  document.getElementById('shortcut-panel').classList.toggle('open');
 };
+
+document.getElementById('btn-add-bar').onclick = addBarToCurrentSection;
+document.getElementById('btn-add-section').onclick = addSection;
+document.getElementById('btn-collapse-all').onclick = () => {
+  if (state.parsed?.ok) { toggleCollapseAll(); renderGrid(state.parsed); }
+};
+
+// Re-render when grid scroll area width changes so row-label layout stays correct
+(function initGridResize() {
+  const el = document.getElementById('grid-scroll');
+  let lastW = 0;
+  new ResizeObserver(entries => {
+    const w = entries[0].contentBoxSize?.[0]?.inlineSize ?? entries[0].contentRect.width;
+    if (Math.abs(w - lastW) > 1) {
+      lastW = w; setGridScrollWidth(w);
+      if (state.parsed?.ok) renderGrid(state.parsed);
+    }
+  }).observe(el);
+})();
 
 // New pattern modal
 document.getElementById('btn-new').onclick = () => {
@@ -361,6 +444,7 @@ document.getElementById('search').addEventListener('input', renderPatternList);
 
 setCustomPatterns(StorageStore.list());
 buildSidebar();
+initSidebarUI();
 
 const _savedId = StorageStore.getActive();
 const _savedCp = _savedId ? StorageStore.load(_savedId) : null;

@@ -12,23 +12,31 @@ body { background: var(--bg); color: var(--fg); font: 13px/1.4 var(--font-ui); h
 #main { display: flex; flex: 1; overflow: hidden; }
 
 /* ── Sidebar ── */
-#sidebar { width: 200px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-#sidebar-head { padding: 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-#search { width: 100%; background: var(--bg3); border: 1px solid var(--border); color: var(--fg); padding: 4px 6px; border-radius: 4px; font: inherit; font-size: 12px; }
+#sidebar { width: 200px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; transition: width 0.15s; }
+#sidebar.collapsed { width: 28px !important; }
+#sidebar.collapsed > :not(#sidebar-head) { display: none; }
+#sidebar.collapsed #sidebar-head { padding: 4px 0; justify-content: center; border-bottom: none; }
+#sidebar.collapsed #search { display: none; }
+/* Resize handle lives as a flex sibling in #main (not inside sidebar) to avoid overflow:hidden clipping */
+#sidebar-resize { width: 4px; flex-shrink: 0; cursor: col-resize; background: transparent; transition: background 0.1s; }
+#sidebar-resize:hover { background: var(--accent); opacity: 0.35; }
+#sidebar-head { padding: 6px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+#sidebar-collapse { flex-shrink: 0; background: none; border: none; color: var(--fg3); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; }
+#sidebar-collapse:hover { color: var(--fg2); }
+#search { flex: 1; min-width: 0; background: var(--bg3); border: 1px solid var(--border); color: var(--fg); padding: 4px 6px; border-radius: 4px; font: inherit; font-size: 12px; }
 #cats { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 #pattern-list { flex: 1; overflow-y: auto; }
 
 /* ── Editor area ── */
 #editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-#card-head { padding: 8px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: baseline; gap: 10px; }
-#card-title { font-size: 16px; font-weight: 700; }
-#card-meta { color: var(--fg3); font-size: 11px; }
-#action-bar { display: flex; gap: 6px; padding: 5px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; align-items: center; }
-#edit-toolbar { display: flex; gap: 6px; padding: 5px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; align-items: center; }
+#edit-toolbar { display: flex; gap: 8px; padding: 5px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; align-items: center; }
+#card-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; }
+#card-meta { color: var(--fg3); font-size: 11px; white-space: nowrap; }
 
 /* ── Grid scroll ── */
 #grid-scroll { flex: 1; overflow: auto; padding: 12px; }
 #grid-wrap { display: flex; flex-direction: column; gap: 16px; }
+/* Grid rows: .hat-grid is a column-of-rows container; .hat-grid-row is one wrapped line */
 
 /* ── Source panel ── */
 #source-wrap { border-top: 1px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; height: 160px; }
@@ -39,6 +47,7 @@ body { background: var(--bg); color: var(--fg); font: 13px/1.4 var(--font-ui); h
 #transport { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: var(--bg2); border-top: 1px solid var(--border); flex-shrink: 0; }
 #play-btn { font-size: 16px; width: 32px; height: 32px; padding: 0; }
 label { font-size: 11px; color: var(--fg2); }
-input[type=range] { width: 80px; accent-color: var(--accent); }
-#bpm-val { min-width: 30px; }
+input[type=range] { flex: 1; min-width: 60px; accent-color: var(--accent); }
+#bpm-num { width: 46px; background: var(--bg3); border: 1px solid var(--border); color: var(--fg); border-radius: 3px; padding: 2px 4px; font: inherit; font-size: 11px; text-align: right; }
+#transport label { display: flex; align-items: center; gap: 4px; flex: 1; }
 #tap-btn { font-size: 11px; }

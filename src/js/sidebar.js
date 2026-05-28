@@ -21,6 +21,54 @@ export const _editorRef = {};
 export function setEditorRef(ref) { Object.assign(_editorRef, ref); }
 
 // ─────────────────────────────────────────────
+//  SIDEBAR COLLAPSE + RESIZE
+// ─────────────────────────────────────────────
+
+export function initSidebarUI() {
+  const sidebar = document.getElementById('sidebar');
+  const collapseBtn = document.getElementById('sidebar-collapse');
+  const resizeHandle = document.getElementById('sidebar-resize'); // sibling of sidebar in #main
+  const STORAGE_KEY = 'hat-sidebar-width';
+  const STORAGE_COLLAPSED = 'hat-sidebar-collapsed';
+
+  // Restore saved width
+  const savedWidth = localStorage.getItem(STORAGE_KEY);
+  if (savedWidth) sidebar.style.width = savedWidth + 'px';
+
+  // Restore collapsed state
+  if (localStorage.getItem(STORAGE_COLLAPSED) === '1') {
+    sidebar.classList.add('collapsed');
+    collapseBtn.textContent = '›';
+  }
+
+  collapseBtn.onclick = () => {
+    const isCollapsed = sidebar.classList.toggle('collapsed');
+    collapseBtn.textContent = isCollapsed ? '›' : '‹';
+    localStorage.setItem(STORAGE_COLLAPSED, isCollapsed ? '1' : '0');
+  };
+
+  // Resize drag — handle is a flex sibling of sidebar; disable transition during drag for responsiveness
+  resizeHandle.addEventListener('mousedown', e => {
+    if (sidebar.classList.contains('collapsed')) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = sidebar.getBoundingClientRect().width;
+    sidebar.style.transition = 'none';
+    const onMove = e => {
+      const w = Math.max(120, Math.min(400, startW + e.clientX - startX));
+      sidebar.style.width = w + 'px';
+    };
+    const onUp = () => {
+      sidebar.style.transition = '';
+      document.removeEventListener('mousemove', onMove);
+      localStorage.setItem(STORAGE_KEY, parseInt(sidebar.style.width));
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp, { once: true });
+  });
+}
+
+// ─────────────────────────────────────────────
 //  HELPERS
 // ─────────────────────────────────────────────
 

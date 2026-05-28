@@ -61,6 +61,7 @@
   <!-- Sidebar -->
   <div id="sidebar">
     <div id="sidebar-head">
+      <button id="sidebar-collapse" title="Collapse sidebar">‹</button>
       <input id="search" type="text" placeholder="Search patterns…">
     </div>
     <div id="cats"></div>
@@ -68,39 +69,20 @@
     <div id="pattern-list"></div>
   </div>
 
+  <!-- Sidebar resize handle (flex sibling so overflow:hidden can't clip it) -->
+  <div id="sidebar-resize"></div>
+
   <!-- Editor -->
   <div id="editor">
-    <div id="card-head">
+    <div id="edit-toolbar">
       <span id="card-title">Untitled</span>
       <span id="card-meta"></span>
-    </div>
-
-    <div id="action-bar">
-      <button id="btn-add-section">+ Section</button>
-    </div>
-
-    <div id="edit-toolbar">
-      <span class="key-hint"><kbd>D</kbd> Doum</span>
-      <span class="key-hint"><kbd>T</kbd> Tak-R</span>
-      <span class="key-hint"><kbd>K</kbd> Tak-L</span>
-      <span class="key-hint"><kbd>S</kbd> Slap</span>
-      <span class="key-hint"><kbd>.</kbd> Ghost</span>
-      <span class="key-hint"><kbd>-</kbd> Rest</span>
-      <span class="key-hint"><kbd>d/t/k/s</kbd> muted</span>
-      <span class="key-hint"><kbd>*/^</kbd> flam</span>
       <div class="tb-sep"></div>
-      <span class="key-hint"><kbd>1–9,0</kbd> note</span>
-      <span class="key-hint"><kbd>n</kbd> picker</span>
-      <div class="tb-sep"></div>
-      <span class="key-hint"><kbd>i/o</kbd> insert col</span>
-      <span class="key-hint"><kbd>x</kbd> del col</span>
-      <span class="key-hint"><kbd>I</kbd> | toggle</span>
-      <span class="key-hint"><kbd>B</kbd> || toggle</span>
-      <div class="tb-sep"></div>
-      <span class="key-hint"><kbd>click bar#</kbd> select</span>
-      <span class="key-hint"><kbd>Ctrl+C/V</kbd> copy/paste</span>
-      <span class="key-hint"><kbd>Ctrl+Z</kbd> undo</span>
-      <span class="key-hint"><kbd>Space</kbd> play</span>
+      <button id="btn-add-bar" class="grid-action-btn" title="Add bar to current section">+ Bar</button>
+      <button id="btn-add-section" class="grid-action-btn" title="Add section at selected bar (Ctrl/Cmd+Enter)">+ Section</button>
+      <button id="btn-collapse-all" class="grid-action-btn" title="Collapse / expand all sections">▼▼</button>
+      <div style="flex:1"></div>
+      <button id="btn-shortcuts" title="Keyboard shortcuts (?)">?</button>
     </div>
 
     <div id="grid-scroll">
@@ -120,7 +102,7 @@
 <!-- Transport -->
 <div id="transport">
   <button id="play-btn">▶</button>
-  <label>BPM <input type="range" id="bpm" min="40" max="240" value="120"> <span id="bpm-val">120</span></label>
+  <label>BPM <input type="range" id="bpm" min="40" max="240" value="120"> <input type="number" id="bpm-num" min="40" max="240" value="120"></label>
   <button id="tap-btn">Tap</button>
   <label><input type="checkbox" id="loop-chk"> Loop</label>
 </div>
@@ -161,9 +143,9 @@
     </div>
     <div class="sc-section">
       <div class="sc-heading">Notes</div>
-      <div class="sc-row"><kbd>1</kbd>–<kbd>9</kbd>, <kbd>0</kbd><span>Pick note by index</span></div>
+      <div class="sc-row"><kbd>1</kbd>–<kbd>9</kbd>, <kbd>0</kbd><span>Pick note by index (multi-digit: type e.g. 12 quickly)</span></div>
       <div class="sc-row"><kbd>n</kbd><span>Note picker popup</span></div>
-      <div class="sc-row"><kbd>c</kbd> + digits<span>Chord token (e.g. c1)</span></div>
+      <div class="sc-row"><kbd>c</kbd> + digits<span>Chord token (e.g. c1, c12)</span></div>
       <div class="sc-row"><kbd>c</kbd><kbd>c</kbd><span>Chord picker popup</span></div>
     </div>
     <div class="sc-section">
@@ -181,6 +163,10 @@
       <div class="sc-row"><kbd>Ctrl V</kbd><span>Paste</span></div>
       <div class="sc-row"><kbd>Del</kbd> (bar selected)<span>Delete bar(s)</span></div>
       <div class="sc-row"><kbd>Ctrl Z</kbd><span>Undo</span></div>
+    </div>
+    <div class="sc-section">
+      <div class="sc-heading">Sections</div>
+      <div class="sc-row"><kbd>Ctrl/Cmd ↵</kbd><span>Add section at cursor / selection</span></div>
     </div>
     <div class="sc-section">
       <div class="sc-heading">Playback</div>

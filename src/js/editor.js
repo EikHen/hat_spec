@@ -15,7 +15,7 @@ import {
   setTypeMode, setTypeBuf, setTypeTimer, setTypeTarget,
 } from './state.js';
 import { parseHAT, serializeHAT } from './parser.js';
-import { renderGrid, setStatus } from './renderer.js';
+import { renderGrid, setStatus, clearCollapsedSections } from './renderer.js';
 import { StorageStore } from './storage.js';
 
 // _emitPatternChanged is imported lazily via ref to avoid circular init
@@ -149,11 +149,10 @@ export function deleteSelectedBars() {
   if (!state.parsed?.ok||_selBars.size===0) return;
   const sorted=[..._selBars].map(k=>k.split('-').map(Number)).sort((a,b)=>b[0]-a[0]||b[1]-a[1]);
   pushUndo();
-  for (const [si,bi] of sorted) {
-    const bars=state.parsed.sections[si].bars;
-    if (bars.length>1) bars.splice(bi,1);
-  }
+  for (const [si,bi] of sorted) state.parsed.sections[si].bars.splice(bi,1);
+  const before=state.parsed.sections.length;
   state.parsed.sections=state.parsed.sections.filter(s=>s.bars.length>0);
+  if (state.parsed.sections.length!==before) clearCollapsedSections();
   if (!state.parsed.sections.length) {
     const empty={R:{hit:'-',mod:null},L:{hit:'-',mod:null},beatStart:false,sub:false,countTok:null};
     state.parsed.sections=[{label:'',bars:[{cols:[empty]}]}];
@@ -199,6 +198,7 @@ export function syncSourceFromModel() {
 // ─────────────────────────────────────────────
 
 export function loadHAT(text) {
+  clearCollapsedSections();
   state.hatText=text; document.getElementById('source').value=text;
   reparse();
   if (_embedRef._emitPatternChanged) _embedRef._emitPatternChanged();
