@@ -800,7 +800,7 @@ document.getElementById('settings-import-input').addEventListener('change', (e) 
   reader.onload = (ev) => {
     try {
       const parsed = JSON.parse(ev.target.result);
-      if (!validateSettings(parsed)) { alert('Invalid settings file.'); return; }
+      if (!validateSettings(parsed)) { showToast('Invalid settings file.'); return; }
       _appSettings = {
         version: 1,
         general: { ...DEFAULTS.general, ...parsed.general },
@@ -818,7 +818,8 @@ document.getElementById('settings-import-input').addEventListener('change', (e) 
       saveSettings(_appSettings);
       populateSettingsModal(_appSettings);
       if (state.parsed?.ok) renderGrid(state.parsed);
-    } catch { alert('Could not read settings file.'); }
+      showToast('Settings imported');
+    } catch (err) { console.error('Settings import error:', err); showToast('Could not read settings file.'); }
   };
   reader.readAsText(file);
   e.target.value = '';
