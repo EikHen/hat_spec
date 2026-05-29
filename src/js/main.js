@@ -778,7 +778,9 @@ document.getElementById('settings-font').addEventListener('change', () => {
 
 // Reset to defaults
 document.getElementById('settings-reset').addEventListener('click', () => {
-  _appSettings = { ...DEFAULTS, srcCollapsed: _appSettings.srcCollapsed };
+  // In embed mode the host owns display; preserve it so the modal stays accurate.
+  const display = EMBED_MODE ? _appSettings.display : DEFAULTS.display;
+  _appSettings = { ...DEFAULTS, display, srcCollapsed: _appSettings.srcCollapsed };
   applyAllSettings(_appSettings);
   saveSettings(_appSettings);
   populateSettingsModal(_appSettings);
@@ -812,7 +814,9 @@ document.getElementById('settings-import-input').addEventListener('change', (e) 
         general: { ...DEFAULTS.general, ...parsed.general },
         audio:   { ...DEFAULTS.audio,   ...parsed.audio   },
         layout:  { ...DEFAULTS.layout,  ...parsed.layout  },
-        display: {
+        // In embed mode the host owns display; ignore imported colors so the
+        // modal stays in sync with the actual rendered theme.
+        display: EMBED_MODE ? _appSettings.display : {
           font:   parsed.display?.font || DEFAULTS.display.font,
           colors: { ...DEFAULTS.display.colors, ...parsed.display?.colors }
         },
