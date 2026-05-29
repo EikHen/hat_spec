@@ -2,6 +2,7 @@
 // Embed postMessage bridge — all inbound/outbound iframe communication.
 
 import { state } from './state.js';
+import { applySettings } from './config.js';
 import { PATTERNS } from './parser.js';
 import { StorageStore, ListStore, genId, _listUndoStack } from './storage.js';
 import {
@@ -150,16 +151,20 @@ export function initEmbedListener() {
       case 'hat:set-notes':    _handleSetNotes(msg); break;
       case 'hat:load-pattern': _handleLoadPattern(msg); break;
       case 'hat:load-library': _handleLoadLibrary(msg); break;
-      case 'hat:set-theme':
-        if (msg.vars && typeof msg.vars === 'object') {
-          const root = document.documentElement;
-          for (const [k, v] of Object.entries(msg.vars)) {
-            if (typeof v === 'string') root.style.setProperty(k, v);
-          }
-        } else {
-          console.debug('hat:set-theme: no vars provided', msg);
+      case 'hat:set-theme': {
+        if (!msg.vars || typeof msg.vars !== 'object') { console.debug('hat:set-theme: no vars provided', msg); break; }
+        // Convert CSS var names (--bg → bg) into the display config shape. Not saved (ephemeral).
+        const colors = {}, display = {};
+        for (const [k, v] of Object.entries(msg.vars)) {
+          if (typeof v !== 'string') continue;
+          const key = k.startsWith('--') ? k.slice(2) : k;
+          if (key === 'font-ui') display.font = v;
+          else colors[key] = v;
         }
+        if (Object.keys(colors).length) display.colors = colors;
+        if (Object.keys(display).length) applySettings({ display });
         break;
+      }
       case 'hat:ping':
         _postToHost({ type: 'hat:ready', specVersion: '1.3.4' });
         break;

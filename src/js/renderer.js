@@ -88,6 +88,9 @@ export function refreshCellEl(sec, bar, col) {
 export const _editorRef = {};
 export function setEditorRef(ref) { Object.assign(_editorRef, ref); }
 
+let _flipRL = false;
+export function setFlipRL(v) { _flipRL = v; }
+
 // ─────────────────────────────────────────────
 //  SECTION COLLAPSE STATE
 // ─────────────────────────────────────────────
@@ -138,7 +141,7 @@ function makeLabelCol() {
   lblCol.style.cssText='display:flex;flex-direction:column;padding-top:19px;padding-bottom:24px;align-items:center;flex-shrink:0;';
   const cLbl=document.createElement('div'); cLbl.className='row-label C'; cLbl.textContent='C';
   cLbl.style.marginBottom='14px'; lblCol.appendChild(cLbl);
-  ['R','L'].forEach((h,i)=>{
+  (_flipRL ? ['L','R'] : ['R','L']).forEach((h,i)=>{
     const l=document.createElement('div'); l.className=`row-label ${h}`; l.textContent=h;
     l.style.height='30px';
     if (i===0) l.style.marginBottom='4px';
@@ -364,7 +367,8 @@ export function renderGrid(parsed) {
           gci++;
         }
 
-        barRows.append(countRow,subdivRow,rowR,rowL,colSelRow);
+        if (_flipRL) barRows.append(countRow,subdivRow,rowL,rowR,colSelRow);
+        else barRows.append(countRow,subdivRow,rowR,rowL,colSelRow);
         barBlock.appendChild(barRows);
 
         // Column-count resize handle (right side, absolute)

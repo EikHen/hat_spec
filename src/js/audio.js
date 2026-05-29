@@ -5,6 +5,16 @@ import { state, getSelCols } from './state.js';
 
 export let _playing = false;
 let _actx=null, _noiseBuf=null;
+
+let _masterVolume = 1.0;
+export function setMasterVolume(v) { _masterVolume = Math.max(0, Math.min(1, +v || 0)); }
+
+let _doumNote = '';
+export function setDoumNote(v) { _doumNote = typeof v === 'string' ? v.trim() : ''; }
+
+let _ghostVolume = 1.0;
+export function setGhostVolume(v) { _ghostVolume = Math.max(0, Math.min(1, +v || 0)); }
+
 let _stepIdx=0, _nextStepTime=0, _schedTimer=null, _phRaf=null;
 const LOOKAHEAD=0.12, SCHED_MS=40;
 
@@ -54,7 +64,7 @@ export function playHit(actx, t, hit, _scale=1) {
     const filt=actx.createBiquadFilter();
     if (bpFreq) { filt.type='bandpass'; filt.frequency.value=bpFreq; filt.Q.value=bpQ||1; }
     else { filt.type='highpass'; filt.frequency.value=hpFreq||200; }
-    const g=actx.createGain(); g.gain.setValueAtTime(vol*_scale,t2); g.gain.exponentialRampToValueAtTime(0.001,t2+dur);
+    const g=actx.createGain(); g.gain.setValueAtTime(vol*_scale*_masterVolume,t2); g.gain.exponentialRampToValueAtTime(0.001,t2+dur);
     src.connect(filt); filt.connect(g); g.connect(actx.destination); src.start(t2); src.stop(t2+dur+0.01);
   }
 
@@ -62,12 +72,18 @@ export function playHit(actx, t, hit, _scale=1) {
     const osc=actx.createOscillator(); osc.type=type;
     if (pitchDrop){ osc.frequency.setValueAtTime(freq*1.6,t2); osc.frequency.exponentialRampToValueAtTime(freq,t2+0.08); }
     else osc.frequency.value=freq;
-    const g=actx.createGain(); g.gain.setValueAtTime(vol*_scale,t2); g.gain.exponentialRampToValueAtTime(0.001,t2+dur);
+    const g=actx.createGain(); g.gain.setValueAtTime(vol*_scale*_masterVolume,t2); g.gain.exponentialRampToValueAtTime(0.001,t2+dur);
     osc.connect(g); g.connect(actx.destination); osc.start(t2); osc.stop(t2+dur+0.01);
   }
 
   switch(hit) {
-    case 'D': tone(t,92,'sine',0.60,0.75,true);  noise(t,0.028,0,0,0.30,280); break;
+    case 'D':
+      if (_doumNote) {
+        const dFreq=noteToHz(_doumNote), dur2=2.0;
+        tone(t,dFreq,'sine',0.50,dur2); tone(t,dFreq*2.0,'sine',0.16,dur2*0.55); tone(t,dFreq*3.0,'sine',0.06,dur2*0.35);
+        noise(t,0.018,0,0,0.08,900);
+      } else { tone(t,92,'sine',0.60,0.75,true); noise(t,0.028,0,0,0.30,280); }
+      break;
     case 'd': tone(t,92,'sine',0.28,0.15,true);  noise(t,0.012,0,0,0.12,280); break;
     case 'T': noise(t,0.15,870,5.5,0.60); tone(t,520,'sine',0.22,0.035); break;
     case 't': noise(t,0.06,870,5.5,0.28); tone(t,520,'sine',0.10,0.018); break;
@@ -75,7 +91,7 @@ export function playHit(actx, t, hit, _scale=1) {
     case 'k': noise(t,0.05,640,4.5,0.24); tone(t,370,'sine',0.08,0.018); break;
     case 'S': noise(t,0.10,0,0,0.52,1500); tone(t,310,'sawtooth',0.16,0.030); break;
     case 's': noise(t,0.04,0,0,0.22,1500); break;
-    case '•': noise(t,0.07,730,6,0.09); break;
+    case '•': noise(t,0.09,500,10,0.24*_ghostVolume); tone(t,240,'sine',0.056*_ghostVolume,0.08); break;
     default: {
       const freq = noteToHz(hit);
       const dur = 2.0;
