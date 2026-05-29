@@ -58,7 +58,7 @@ export function initGridEvents(EMBED_MODE) {
     const cnt = e.target.closest('.count-cell');
     if (cnt && cnt.dataset.col !== undefined) {
       if (_hovered?.el) _hovered.el.classList.remove('hovered');
-      setHovered({ el: null, sec: +cnt.dataset.sec, bar: +cnt.dataset.bar, col: +cnt.dataset.col, hand: _hovered?.hand || 'R' });
+      setHovered({ el: null, sec: +cnt.dataset.sec, bar: +cnt.dataset.bar, col: +cnt.dataset.col, hand: _hovered?.hand || 'R', countCell: true });
     }
   });
 
@@ -161,8 +161,8 @@ export function initKeyboard() {
       return;
     }
 
-    // Feed ongoing type buffer
-    if (_typeMode && FIELD_DIGIT_KEYS.includes(e.key)) {
+    // Feed ongoing type buffer (only when directly over a hat-cell)
+    if (_typeMode && FIELD_DIGIT_KEYS.includes(e.key) && !!document.querySelector('#grid-wrap .hat-cell:hover')) {
       e.preventDefault();
       setTypeBuf(_typeBuf + e.key);
       clearTimeout(_typeTimer);
@@ -217,12 +217,18 @@ export function initKeyboard() {
       }
     }
 
-    // Digit keys → buffered note input, or count token when no notes defined
+    // Digit keys → count token (unless directly over a hat-cell and notes are defined)
     if (FIELD_DIGIT_KEYS.includes(e.key)) {
       const notes = state.parsed.meta._noteNames || [];
-      if (!notes.length) {
+      const onHatCell = !!document.querySelector('#grid-wrap .hat-cell:hover');
+      if (!notes.length || !onHatCell) {
         e.preventDefault();
-        if (setCountTok) setCountTok(sec, bar, col, e.key);
+        clearTimeout(_typeTimer); setTypeTimer(null); setTypeMode(null); setTypeBuf(''); setTypeTarget(null);
+        const cntDom = document.querySelector('#grid-wrap .count-cell:hover');
+        const tsec = cntDom ? +cntDom.dataset.sec : sec;
+        const tbar = cntDom ? +cntDom.dataset.bar : bar;
+        const tcol = cntDom ? +cntDom.dataset.col : col;
+        if (setCountTok) setCountTok(tsec, tbar, tcol, e.key);
         return;
       }
       e.preventDefault();
