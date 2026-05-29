@@ -4,7 +4,7 @@
 import { state, setCustomPatterns, setCustomPatId, setActivePatIdx, _showNoteNums, setShowNoteNums, _selBars, _hovered, _customPatId } from './state.js';
 import { parseHAT, PATTERNS } from './parser.js';
 import { StorageStore, ListStore, genId } from './storage.js';
-import { loadSettings, saveSettings, applySettings } from './config.js';
+import { DEFAULTS, loadSettings, saveSettings, applySettings, validateSettings } from './config.js';
 
 import {
   renderGrid, setStatus, showToast,
@@ -13,6 +13,7 @@ import {
   setEditorRef as rendererSetEditorRef,
   setGridScrollWidth,
   clearCollapsedSections, remapCollapsedAfterMove, toggleCollapseAll,
+  setFlipRL,
 } from './renderer.js';
 
 import {
@@ -33,6 +34,7 @@ import {
 import {
   startPlayback, stopPlayback, _playing,
   setEmbedRef as audioSetEmbedRef,
+  setMasterVolume, setGhostVolume, setDoumNote,
 } from './audio.js';
 
 import {
@@ -253,14 +255,6 @@ document.getElementById('tap-btn').onclick = () => {
     const bpm = Math.round(60000 / avg);
     if (bpm >= 40 && bpm <= 240) { bpmRange.value = bpm; bpmNum.value = bpm; }
   }
-};
-
-document.getElementById('btn-note-mode').onclick = () => {
-  setShowNoteNums(!_showNoteNums);
-  const btn = document.getElementById('btn-note-mode');
-  btn.textContent = _showNoteNums ? 'Numbers' : 'Names';
-  btn.classList.toggle('active', _showNoteNums);
-  if (state.parsed?.ok) renderGrid(state.parsed);
 };
 
 document.getElementById('btn-shortcuts').onclick = () => {
@@ -498,17 +492,317 @@ document.getElementById('card-title').addEventListener('dblclick', () => {
   inp.addEventListener('blur', commit);
 });
 
+// ─────────────────────────────────────────────
+//  SETTINGS SYSTEM
+// ─────────────────────────────────────────────
+
+let _appSettings = loadSettings();
+
+// Applies all settings to state modules + CSS vars. Does not trigger renderGrid.
+function applyAllSettings(cfg) {
+  if (!EMBED_MODE) applySettings(cfg);           // CSS vars + font (skip in embed — host owns theme)
+  else if ('srcCollapsed' in cfg) applySettings({ srcCollapsed: cfg.srcCollapsed });
+  setFlipRL(cfg.layout?.flipRL || false);
+  setMasterVolume(cfg.audio?.masterVolume ?? 1.0);
+  setGhostVolume(cfg.audio?.ghostVolume ?? 1.0);
+  setDoumNote(cfg.audio?.doumNote || '');
+  setShowNoteNums(cfg.general?.noteDisplay === 'numbers');
+}
+
+applyAllSettings(_appSettings);
+
 // Source panel toggle
-(function initSourceToggle() {
-  const settings = loadSettings();
-  applySettings(settings);
-  document.getElementById('source-toggle').onclick = () => {
-    const wrap = document.getElementById('source-wrap');
-    const collapsed = !wrap.classList.contains('collapsed');
-    applySettings({ srcCollapsed: collapsed });
-    saveSettings({ srcCollapsed: collapsed });
+document.getElementById('source-toggle').onclick = () => {
+  const wrap = document.getElementById('source-wrap');
+  _appSettings = { ..._appSettings, srcCollapsed: !wrap.classList.contains('collapsed') };
+  applySettings({ srcCollapsed: _appSettings.srcCollapsed });
+  saveSettings(_appSettings);
+};
+
+// ── Settings modal helpers ──
+
+const COLOR_GROUPS = [
+  { label: 'Surfaces',  keys: ['bg', 'bg2', 'bg3', 'bg4'] },
+  { label: 'Text',      keys: ['fg', 'fg2', 'fg3', 'accent', 'border'] },
+  { label: 'Right hand',keys: ['R', 'Rdim', 'Rbg'] },
+  { label: 'Left hand', keys: ['L', 'Ldim', 'Lbg'] },
+  { label: 'Hits',      keys: ['hit-D', 'hit-T', 'hit-K', 'hit-S', 'hit-note'] },
+  { label: 'Cells',     keys: ['cell-rest-bg', 'cell-D-bg', 'cell-T-bg', 'cell-K-bg', 'cell-S-bg', 'cell-ghost-bg', 'cell-note-bg'] },
+  { label: 'Grid',      keys: ['bar-bg', 'bar-border', 'bar-selected-bg', 'sep-beat', 'sep-beat-dim', 'sep-sub', 'sep-sub-dim'] },
+  { label: 'Count Row', keys: ['count-tok-fg', 'count-tok-bg'] },
+  { label: 'Selection', keys: ['col-sel-cell', 'col-sel-strip'] },
+  { label: 'Misc',      keys: ['scrim', 'playing'] },
+];
+
+function isValidNote(name) {
+  return !name || /^[A-G][b#]?-?\d+$/.test(name);
+}
+
+let _prevDoumNote = '';
+
+// ── Custom color picker ──
+
+const COLOR_PALETTE = [
+  '#ffffff','#c8e0f8','#a8a8b8','#5a5a6a','#2e2e34',
+  '#7dd4ff','#5ab0f0','#3a8fd8','#1a6cb8','#0a4a88',
+  '#ffc050','#e0903a','#c06028','#783810','#2e1808',
+  '#78e068','#3ab858','#d878f8','#a848d0','#f06060',
+];
+
+let _openDrop = null;
+
+// Close any open picker when clicking elsewhere
+document.addEventListener('click', () => {
+  if (_openDrop) { _openDrop.classList.remove('placed'); _openDrop = null; }
+});
+
+function createColorWidget(key, initialVal, onChange) {
+  const wrap   = document.createElement('div');   wrap.className = 'cp-wrap';
+  const swatch = document.createElement('button'); swatch.type = 'button'; swatch.className = 'cp-swatch';
+  swatch.style.background = initialVal; swatch.title = '--' + key;
+  const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'cp-inp';
+  inp.value = initialVal; inp.spellcheck = false;
+
+  const drop = document.createElement('div'); drop.className = 'cp-drop';
+  const grid = document.createElement('div'); grid.className = 'cp-grid';
+  for (const hex of COLOR_PALETTE) {
+    const dot = document.createElement('button'); dot.type = 'button'; dot.className = 'cp-dot';
+    dot.style.background = hex; dot.title = hex;
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      inp.value = hex; swatch.style.background = hex;
+      drop.classList.remove('placed'); _openDrop = null;
+      onChange(hex);
+    });
+    grid.appendChild(dot);
+  }
+  drop.appendChild(grid);
+  document.body.appendChild(drop);
+
+  swatch.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (drop.classList.contains('placed')) {
+      drop.classList.remove('placed'); _openDrop = null;
+    } else {
+      if (_openDrop) { _openDrop.classList.remove('placed'); }
+      _openDrop = drop;
+      const r = swatch.getBoundingClientRect();
+      drop.style.left = r.left + 'px';
+      drop.style.top  = (r.bottom + 4) + 'px';
+      drop.classList.add('placed');
+    }
+  });
+  drop.addEventListener('click', (e) => e.stopPropagation());
+
+  inp.addEventListener('change', () => {
+    const v = inp.value.trim();
+    swatch.style.background = v;
+    onChange(v);
+  });
+
+  wrap.appendChild(swatch); wrap.appendChild(inp);
+  return { wrap, swatch, inp, drop };
+}
+
+const _cpDrops = [];
+
+function buildColorTable(cfg) {
+  // Remove previously created drop elements from body
+  for (const d of _cpDrops) d.remove();
+  _cpDrops.length = 0;
+
+  const container = document.getElementById('settings-color-table');
+  container.innerHTML = '';
+  for (const grp of COLOR_GROUPS) {
+    const hdr = document.createElement('div'); hdr.className = 'settings-color-group'; hdr.textContent = grp.label;
+    container.appendChild(hdr);
+    for (const key of grp.keys) {
+      const val = cfg.display?.colors?.[key] ?? DEFAULTS.display.colors[key] ?? '#888888';
+      const row = document.createElement('div'); row.className = 'settings-color-row';
+      const lbl = document.createElement('span'); lbl.className = 'settings-color-key'; lbl.textContent = '--' + key;
+      const widget = createColorWidget(key, val, (newVal) => {
+        if (!_appSettings.display?.colors) {
+          _appSettings = { ..._appSettings, display: { ..._appSettings.display, colors: { ...DEFAULTS.display.colors } } };
+        }
+        _appSettings.display.colors[key] = newVal;
+        applySettings(_appSettings);
+        saveSettings(_appSettings);
+      });
+      _cpDrops.push(widget.drop);
+      row.appendChild(lbl); row.appendChild(widget.wrap);
+      container.appendChild(row);
+    }
+  }
+}
+
+function populateSettingsModal(cfg) {
+  // General
+  const nd = cfg.general?.noteDisplay || 'names';
+  document.querySelector(`input[name="noteDisplay"][value="${nd}"]`).checked = true;
+  const doumVal = cfg.audio?.doumNote || '';
+  document.getElementById('settings-doum-note').value = doumVal;
+  document.getElementById('settings-doum-err').textContent = '';
+  _prevDoumNote = doumVal;
+  // Audio
+  const vol = cfg.audio?.masterVolume ?? 1.0;
+  document.getElementById('settings-volume').value = vol;
+  document.getElementById('settings-volume-val').textContent = Math.round(vol * 100) + '%';
+  const gvol = cfg.audio?.ghostVolume ?? 1.0;
+  document.getElementById('settings-ghost-volume').value = gvol;
+  document.getElementById('settings-ghost-volume-val').textContent = Math.round(gvol * 100) + '%';
+  // Layout
+  document.getElementById('settings-fliprl').checked = cfg.layout?.flipRL || false;
+  // Display
+  document.getElementById('settings-font').value = cfg.display?.font || DEFAULTS.display.font;
+  buildColorTable(cfg);
+}
+
+function openSettingsModal() {
+  populateSettingsModal(_appSettings);
+  // Show first tab
+  document.querySelectorAll('.settings-tab').forEach((t, i) => {
+    t.classList.toggle('active', i === 0); t.setAttribute('aria-selected', String(i === 0));
+  });
+  document.querySelectorAll('.settings-pane').forEach((p, i) => { p.hidden = i !== 0; });
+  document.getElementById('settings-modal').classList.add('show');
+  document.getElementById('settings-modal').querySelector('.settings-tab').focus();
+}
+
+// ── Settings modal events ──
+
+document.getElementById('btn-settings').onclick = openSettingsModal;
+
+document.getElementById('settings-close').onclick = () => document.getElementById('settings-modal').classList.remove('show');
+document.getElementById('settings-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('settings-modal')) document.getElementById('settings-modal').classList.remove('show');
+});
+document.getElementById('settings-modal').addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('settings-modal').classList.remove('show');
+});
+
+// Tabs
+document.querySelectorAll('.settings-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.settings-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+    document.querySelectorAll('.settings-pane').forEach(p => { p.hidden = true; });
+    tab.classList.add('active'); tab.setAttribute('aria-selected', 'true');
+    document.getElementById('settings-pane-' + tab.dataset.tab).hidden = false;
+  });
+});
+
+// General: note display
+document.querySelectorAll('input[name="noteDisplay"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    _appSettings = { ..._appSettings, general: { ..._appSettings.general, noteDisplay: radio.value } };
+    setShowNoteNums(radio.value === 'numbers');
+    saveSettings(_appSettings);
+    if (state.parsed?.ok) renderGrid(state.parsed);
+  });
+});
+
+// General: doum note
+document.getElementById('settings-doum-note').addEventListener('change', () => {
+  const inp = document.getElementById('settings-doum-note');
+  const errEl = document.getElementById('settings-doum-err');
+  const val = inp.value.trim();
+  if (!isValidNote(val)) {
+    errEl.textContent = `"${val}" is not a valid note (e.g. D3, A2, C#4)`;
+    inp.value = _prevDoumNote;
+    return;
+  }
+  errEl.textContent = '';
+  _prevDoumNote = val;
+  _appSettings = { ..._appSettings, audio: { ..._appSettings.audio, doumNote: val } };
+  setDoumNote(val);
+  saveSettings(_appSettings);
+});
+
+// Audio: master volume
+document.getElementById('settings-volume').addEventListener('input', () => {
+  const vol = +document.getElementById('settings-volume').value;
+  document.getElementById('settings-volume-val').textContent = Math.round(vol * 100) + '%';
+  _appSettings = { ..._appSettings, audio: { ..._appSettings.audio, masterVolume: vol } };
+  setMasterVolume(vol);
+  saveSettings(_appSettings);
+});
+
+// Audio: ghost note volume
+document.getElementById('settings-ghost-volume').addEventListener('input', () => {
+  const gvol = +document.getElementById('settings-ghost-volume').value;
+  document.getElementById('settings-ghost-volume-val').textContent = Math.round(gvol * 100) + '%';
+  _appSettings = { ..._appSettings, audio: { ..._appSettings.audio, ghostVolume: gvol } };
+  setGhostVolume(gvol);
+  saveSettings(_appSettings);
+});
+
+// Layout: flip R/L
+document.getElementById('settings-fliprl').addEventListener('change', () => {
+  const flip = document.getElementById('settings-fliprl').checked;
+  _appSettings = { ..._appSettings, layout: { ..._appSettings.layout, flipRL: flip } };
+  setFlipRL(flip);
+  saveSettings(_appSettings);
+  if (state.parsed?.ok) renderGrid(state.parsed);
+});
+
+// Display: font
+document.getElementById('settings-font').addEventListener('change', () => {
+  const font = document.getElementById('settings-font').value.trim() || DEFAULTS.display.font;
+  _appSettings = { ..._appSettings, display: { ..._appSettings.display, font } };
+  applySettings(_appSettings);
+  saveSettings(_appSettings);
+});
+
+// Reset to defaults
+document.getElementById('settings-reset').addEventListener('click', () => {
+  _appSettings = { ...DEFAULTS, srcCollapsed: _appSettings.srcCollapsed };
+  applyAllSettings(_appSettings);
+  saveSettings(_appSettings);
+  populateSettingsModal(_appSettings);
+  if (state.parsed?.ok) renderGrid(state.parsed);
+});
+
+// Export settings
+document.getElementById('settings-export').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(_appSettings, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'hat-settings.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// Import settings
+document.getElementById('settings-import').addEventListener('click', () => {
+  document.getElementById('settings-import-input').click();
+});
+document.getElementById('settings-import-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const parsed = JSON.parse(ev.target.result);
+      if (!validateSettings(parsed)) { alert('Invalid settings file.'); return; }
+      _appSettings = {
+        version: 1,
+        general: { ...DEFAULTS.general, ...parsed.general },
+        audio:   { ...DEFAULTS.audio,   ...parsed.audio   },
+        layout:  { ...DEFAULTS.layout,  ...parsed.layout  },
+        display: {
+          font:   parsed.display?.font || DEFAULTS.display.font,
+          colors: { ...DEFAULTS.display.colors, ...parsed.display?.colors }
+        },
+        srcCollapsed: _appSettings.srcCollapsed
+      };
+      applyAllSettings(_appSettings);
+      saveSettings(_appSettings);
+      populateSettingsModal(_appSettings);
+      if (state.parsed?.ok) renderGrid(state.parsed);
+    } catch { alert('Could not read settings file.'); }
   };
-})();
+  reader.readAsText(file);
+  e.target.value = '';
+});
 
 // Shortcut panel close
 document.getElementById('sc-close').onclick = () => document.getElementById('shortcut-panel').classList.remove('open');

@@ -52,8 +52,8 @@
   <button id="btn-export">Export</button>
   <div class="tb-sep"></div>
   <button id="btn-notes">Notes…</button>
-  <button id="btn-note-mode" title="Toggle between note names and note numbers in cells">Names</button>
   <span id="status"></span>
+  <button id="btn-settings" title="Settings" aria-label="Open settings">⚙</button>
 </div>
 
 <!-- Main -->
@@ -123,6 +123,91 @@
 
 <!-- Toast -->
 <div id="toast"></div>
+
+<!-- Settings modal -->
+<div id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div class="settings-inner">
+    <div class="settings-hdr">
+      <h2 id="settings-title">Settings</h2>
+      <button id="settings-close" aria-label="Close settings">✕</button>
+    </div>
+    <div class="settings-tabs" role="tablist">
+      <button class="settings-tab active" data-tab="general" role="tab" aria-selected="true" aria-controls="settings-pane-general">General</button>
+      <button class="settings-tab" data-tab="audio" role="tab" aria-selected="false" aria-controls="settings-pane-audio">Audio</button>
+      <button class="settings-tab" data-tab="layout" role="tab" aria-selected="false" aria-controls="settings-pane-layout">Layout</button>
+      <button class="settings-tab" data-tab="display" role="tab" aria-selected="false" aria-controls="settings-pane-display">Display</button>
+    </div>
+    <div class="settings-body">
+
+      <!-- General -->
+      <div class="settings-pane" id="settings-pane-general" role="tabpanel" aria-labelledby="">
+        <div class="settings-row">
+          <span class="settings-label">Note display</span>
+          <div class="settings-radio-group" role="radiogroup" aria-label="Note display mode">
+            <label><input type="radio" name="noteDisplay" value="names"> Names</label>
+            <label><input type="radio" name="noteDisplay" value="numbers"> Numbers</label>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label" for="settings-doum-note">Doum note</label>
+          <input id="settings-doum-note" type="text" class="settings-input" placeholder="e.g. D3" aria-describedby="settings-doum-hint settings-doum-err">
+          <span id="settings-doum-hint" class="settings-hint">Optional. If set, Doum (D) hits play this note instead of the default percussion sound.</span>
+          <span id="settings-doum-err" class="settings-err" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <!-- Audio -->
+      <div class="settings-pane" id="settings-pane-audio" role="tabpanel" aria-labelledby="" hidden>
+        <div class="settings-row">
+          <label class="settings-label" for="settings-volume">Master volume</label>
+          <div class="settings-slider-row">
+            <input type="range" id="settings-volume" min="0" max="1" step="0.01" value="1" aria-valuemin="0" aria-valuemax="100">
+            <span id="settings-volume-val" aria-live="polite">100%</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label" for="settings-ghost-volume">Ghost note volume</label>
+          <div class="settings-slider-row">
+            <input type="range" id="settings-ghost-volume" min="0" max="1" step="0.01" value="1" aria-valuemin="0" aria-valuemax="100">
+            <span id="settings-ghost-volume-val" aria-live="polite">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout -->
+      <div class="settings-pane" id="settings-pane-layout" role="tabpanel" aria-labelledby="" hidden>
+        <div class="settings-row">
+          <label class="settings-checkbox-label">
+            <input type="checkbox" id="settings-fliprl">
+            Flip R and L rows in rendered grid
+          </label>
+          <span class="settings-hint">Display only — HAT source and keyboard shortcuts are unchanged.</span>
+        </div>
+      </div>
+
+      <!-- Display -->
+      <div class="settings-pane" id="settings-pane-display" role="tabpanel" aria-labelledby="" hidden>
+        <div class="settings-row">
+          <label class="settings-label" for="settings-font">Font (CSS value)</label>
+          <input id="settings-font" type="text" class="settings-input" placeholder="var(--font-mono)">
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Colors</span>
+          <div id="settings-color-table"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="settings-footer">
+      <button id="settings-reset">Reset to defaults</button>
+      <div class="settings-footer-right">
+        <button id="settings-export">Export…</button>
+        <button id="settings-import">Import…</button>
+        <input type="file" id="settings-import-input" accept=".json" style="display:none">
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Shortcut panel -->
 <div id="shortcut-panel">

@@ -315,6 +315,118 @@ button.active { background: var(--accent); color: #000; border-color: var(--acce
 #new-pat-modal .np-label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--fg2); margin-bottom: 8px; }
 #new-pat-modal .np-label input, #new-pat-modal .np-label select { background: var(--bg3); border: 1px solid var(--border); color: var(--fg); padding: 4px 7px; border-radius: 4px; font: inherit; font-size: 12px; }
 
+/* ── Settings button in toolbar ── */
+#btn-settings {
+  background: none; border: 1px solid var(--border); border-radius: 50%;
+  width: 20px; height: 20px; padding: 0; line-height: 1;
+  font-size: 13px; color: var(--fg3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+#btn-settings:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Settings modal ── */
+#settings-modal {
+  display: none; position: fixed; inset: 0;
+  background: var(--scrim); z-index: 8000;
+  align-items: center; justify-content: center;
+}
+#settings-modal.show { display: flex; }
+.settings-inner {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+  width: 460px; max-width: calc(100vw - 24px); max-height: calc(100vh - 48px);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.settings-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.settings-hdr h2 { font-size: 13px; font-weight: 700; color: var(--accent); margin: 0; }
+#settings-close {
+  background: none; border: 1px solid var(--border); border-radius: 3px;
+  color: var(--fg3); cursor: pointer; font: inherit; font-size: 11px; padding: 1px 7px;
+}
+#settings-close:hover { color: var(--fg2); border-color: var(--fg2); }
+.settings-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  padding: 0 10px;
+}
+.settings-tab {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--fg3); cursor: pointer; font: inherit; font-size: 12px;
+  padding: 7px 10px; border-radius: 0;
+}
+.settings-tab:hover { color: var(--fg2); background: var(--bg3); }
+/* Override global button.active rule (which sets bg: accent, color: #000) */
+.settings-tab.active { color: var(--accent) !important; border-bottom-color: var(--accent); background: none !important; }
+.settings-tab.active:hover { background: var(--bg3) !important; }
+.settings-body {
+  flex: 1; overflow-y: auto; padding: 14px 16px 10px;
+}
+.settings-pane { display: flex; flex-direction: column; gap: 14px; }
+/* Override `display:flex` so [hidden] attribute works on panes */
+.settings-pane[hidden] { display: none; }
+.settings-row { display: flex; flex-direction: column; gap: 5px; }
+.settings-label { font-size: 11px; color: var(--fg2); font-weight: 600; }
+.settings-hint { font-size: 10px; color: var(--fg3); line-height: 1.4; }
+.settings-err { font-size: 11px; color: #f06060; }
+.settings-input {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--fg);
+  padding: 4px 7px; border-radius: 4px; font: inherit; font-size: 12px; outline: none;
+}
+.settings-input:focus { border-color: var(--accent); }
+.settings-radio-group { display: flex; gap: 14px; font-size: 12px; color: var(--fg2); }
+.settings-radio-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.settings-checkbox-label { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; color: var(--fg2); cursor: pointer; }
+.settings-slider-row { display: flex; align-items: center; gap: 10px; }
+.settings-slider-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+#settings-volume-val, #settings-ghost-volume-val { font-size: 11px; color: var(--fg2); min-width: 36px; text-align: right; }
+/* Color table */
+#settings-color-table { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.settings-color-group {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--accent); font-weight: 700; margin-top: 10px; margin-bottom: 3px;
+}
+.settings-color-group:first-child { margin-top: 0; }
+.settings-color-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.settings-color-key { font-size: 11px; color: var(--fg3); font-family: var(--font-mono); flex: 1; }
+/* Custom color picker widget */
+.cp-wrap { display: flex; align-items: center; gap: 5px; }
+.cp-swatch {
+  width: 18px; height: 18px; border-radius: 3px; border: 1px solid var(--border);
+  cursor: pointer; flex-shrink: 0; padding: 0; background: #888;
+}
+.cp-swatch:hover { border-color: var(--accent); }
+.cp-inp {
+  width: 108px; font-size: 11px; font-family: var(--font-mono);
+  background: var(--bg3); border: 1px solid var(--border); color: var(--fg);
+  padding: 2px 5px; border-radius: 3px; outline: none; height: 20px;
+}
+.cp-inp:focus { border-color: var(--accent); }
+/* Picker dropdown — positioned fixed by JS */
+.cp-drop {
+  position: fixed; z-index: 9999; background: var(--bg2);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px; box-shadow: 0 4px 20px rgba(0,0,0,0.55);
+  visibility: hidden; /* revealed after positioning */
+}
+.cp-drop.placed { visibility: visible; }
+.cp-grid { display: grid; grid-template-columns: repeat(5, 20px); gap: 3px; }
+.cp-dot {
+  width: 20px; height: 20px; border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.08); cursor: pointer; padding: 0;
+  transition: transform 0.08s, border-color 0.08s;
+}
+.cp-dot:hover { transform: scale(1.15); border-color: var(--fg2); }
+.settings-footer {
+  padding: 8px 14px; border-top: 1px solid var(--border); flex-shrink: 0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.settings-footer-right { display: flex; gap: 6px; }
+#settings-reset { font-size: 11px; color: var(--fg3); }
+#settings-reset:hover { color: var(--fg2); }
+#settings-export, #settings-import { font-size: 11px; color: var(--fg3); }
+#settings-export:hover, #settings-import:hover { color: var(--fg2); }
+
 /* ── Lists ── */
 #list-pills { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 8px 6px; border-bottom: 1px solid var(--border); flex-shrink: 0; align-items: center; }
 .list-pill { position: relative; padding-right: 16px !important; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
