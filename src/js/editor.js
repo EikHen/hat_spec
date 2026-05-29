@@ -188,7 +188,7 @@ export function removeLastColFromBar(sec, bar) {
 // ─────────────────────────────────────────────
 
 export function syncSourceFromModel() {
-  if (_hovered) setHovered({sec:_hovered.sec, bar:_hovered.bar, col:_hovered.col, hand:_hovered.hand, el:null});
+  if (_hovered) setHovered({sec:_hovered.sec, bar:_hovered.bar, col:_hovered.col, hand:_hovered.hand, el:null, countCell:_hovered.countCell});
   const text=serializeHAT(state.parsed.meta,state.parsed.sections);
   document.getElementById('source').value=text; state.hatText=text;
   if (_customPatId) { StorageStore.save(_customPatId, text, state.parsed.meta); setCustomPatterns(StorageStore.list()); }
