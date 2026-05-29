@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HAT Editor Settings",
+  "description": "Versioned user preferences stored in localStorage[\"hat_settings\"]",
+  "type": "object",
+  "required": ["version", "general", "audio", "layout", "display"],
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "general": {
+      "type": "object",
+      "properties": {
+        "noteDisplay": {
+          "type": "string",
+          "enum": ["names", "numbers"],
+          "description": "Whether note cells show note names (D4) or numbers (1)"
+        }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "properties": {
+        "masterVolume": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Global gain multiplier for all playback"
+        },
+        "doumNote": {
+          "type": "string",
+          "description": "If non-empty, Doum (D) hits play this note instead of the default percussion sound. Must be a valid note name, e.g. D3, A2, C#4."
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "properties": {
+        "flipRL": {
+          "type": "boolean",
+          "description": "Display R and L rows in reversed order (display-only; HAT source and shortcuts unchanged)"
+        }
+      }
+    },
+    "display": {
+      "type": "object",
+      "properties": {
+        "font": {
+          "type": "string",
+          "description": "CSS font-family value or CSS variable reference, e.g. var(--font-mono)"
+        },
+        "colors": {
+          "type": "object",
+          "description": "CSS custom property overrides — keys map to --key CSS variables on :root",
+          "properties": {
+            "bg":             { "type": "string" },
+            "fg":             { "type": "string" },
+            "accent":         { "type": "string" },
+            "R":              { "type": "string" },
+            "L":              { "type": "string" },
+            "hit-D":          { "type": "string" },
+            "hit-T":          { "type": "string" },
+            "hit-K":          { "type": "string" },
+            "hit-S":          { "type": "string" },
+            "hit-note":       { "type": "string" },
+            "count-tok-fg":   { "type": "string" },
+            "count-tok-bg":   { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
