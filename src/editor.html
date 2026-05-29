@@ -50,8 +50,6 @@
   <button id="btn-new">New</button>
   <button id="btn-import">Import</button>
   <button id="btn-export">Export</button>
-  <div class="tb-sep"></div>
-  <button id="btn-notes">Notes…</button>
   <span id="status"></span>
   <button id="btn-settings" title="Settings" aria-label="Open settings">⚙</button>
 </div>
@@ -107,20 +105,6 @@
   <label><input type="checkbox" id="loop-chk"> Loop</label>
 </div>
 
-<!-- Notes overlay -->
-<div id="notes-overlay">
-  <div class="modal">
-    <h2>Notes &amp; Note Numbers</h2>
-    <p class="notes-hint">Space-separated. e.g. notes: D4 F4 A4 — note-numbers: 1 2 3<br>Keys 1–9, 0 select notes by index. Hold key + drag to paint.</p>
-    <div class="notes-row"><label>;;notes:</label><input id="notes-input" placeholder="e.g. D4 F4 A4 C5"></div>
-    <div class="notes-row"><label>;;note-numbers:</label><input id="note-numbers-input" placeholder="e.g. 1 2 3 4 (optional)"></div>
-    <div class="modal-btns">
-      <button id="notes-cancel">Cancel</button>
-      <button id="notes-ok">Apply</button>
-    </div>
-  </div>
-</div>
-
 <!-- Toast -->
 <div id="toast"></div>
 
@@ -147,6 +131,15 @@
             <label><input type="radio" name="noteDisplay" value="names"> Names</label>
             <label><input type="radio" name="noteDisplay" value="numbers"> Numbers</label>
           </div>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label" for="settings-notes">Notes</label>
+          <input id="settings-notes" type="text" class="settings-input" placeholder="e.g. D4 F4 A4 C5" aria-describedby="settings-notes-hint">
+          <span id="settings-notes-hint" class="settings-hint">Space-separated note names. Keys 1–9, 0 select notes by index.</span>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label" for="settings-note-numbers">Note numbers</label>
+          <input id="settings-note-numbers" type="text" class="settings-input" placeholder="e.g. 1 2 3 4 (optional)">
         </div>
         <div class="settings-row">
           <label class="settings-label" for="settings-doum-note">Doum note</label>

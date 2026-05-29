@@ -438,29 +438,18 @@ document.getElementById('export-ok').onclick = () => {
   });
 };
 
-// Notes panel
-document.getElementById('btn-notes').onclick = () => {
+// Notes inputs (in Settings > General) — apply on change
+function _applyNotesFromSettings() {
   if (!state.parsed?.ok) return;
-  const m = state.parsed.meta;
-  document.getElementById('notes-input').value = m.notes || m._noteNames?.join(' ') || '';
-  document.getElementById('note-numbers-input').value = m['note-numbers'] || '';
-  document.getElementById('notes-overlay').classList.add('show');
-  document.getElementById('notes-input').focus();
-};
-document.getElementById('notes-cancel').onclick = () => document.getElementById('notes-overlay').classList.remove('show');
-document.getElementById('notes-ok').onclick = () => {
-  if (!state.parsed?.ok) return;
-  const notes = document.getElementById('notes-input').value.trim();
-  const nums  = document.getElementById('note-numbers-input').value.trim();
+  const notes = document.getElementById('settings-notes').value.trim();
+  const nums  = document.getElementById('settings-note-numbers').value.trim();
   pushUndo();
   if (notes) { state.parsed.meta.notes = notes; } else { delete state.parsed.meta.notes; delete state.parsed.meta['note-numbers']; }
   if (nums) state.parsed.meta['note-numbers'] = nums; else delete state.parsed.meta['note-numbers'];
-  document.getElementById('notes-overlay').classList.remove('show');
   syncSourceFromModel(); reparse();
-};
-document.getElementById('notes-overlay').onclick = e => {
-  if (e.target === document.getElementById('notes-overlay')) document.getElementById('notes-overlay').classList.remove('show');
-};
+}
+document.getElementById('settings-notes').addEventListener('change', _applyNotesFromSettings);
+document.getElementById('settings-note-numbers').addEventListener('change', _applyNotesFromSettings);
 
 // Inline title edit on double-click
 document.getElementById('card-title').addEventListener('dblclick', () => {
@@ -663,6 +652,9 @@ function populateSettingsModal(cfg) {
   // General
   const nd = cfg.general?.noteDisplay || 'names';
   document.querySelector(`input[name="noteDisplay"][value="${nd}"]`).checked = true;
+  const m = state.parsed?.meta || {};
+  document.getElementById('settings-notes').value = m.notes || m._noteNames?.join(' ') || '';
+  document.getElementById('settings-note-numbers').value = m['note-numbers'] || '';
   const doumVal = cfg.audio?.doumNote || '';
   document.getElementById('settings-doum-note').value = doumVal;
   document.getElementById('settings-doum-err').textContent = '';
