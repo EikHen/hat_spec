@@ -27,6 +27,11 @@ export function setEditorRef(ref) { Object.assign(_editorRef, ref); }
 export const _sidebarRef = {};
 export function setSidebarRef(ref) { Object.assign(_sidebarRef, ref); }
 
+// Called by main.js to receive a copy of display settings whenever hat:set-theme is applied.
+// Lets main.js keep _appSettings.display in sync with the actual host-provided theme.
+let _onThemeApplied = null;
+export function setOnThemeApplied(fn) { _onThemeApplied = fn; }
+
 // ─────────────────────────────────────────────
 //  OUTBOUND: hat:pattern-changed (debounced)
 // ─────────────────────────────────────────────
@@ -162,7 +167,10 @@ export function initEmbedListener() {
           else colors[key] = v;
         }
         if (Object.keys(colors).length) display.colors = colors;
-        if (Object.keys(display).length) applySettings({ display });
+        if (Object.keys(display).length) {
+          applySettings({ display });
+          if (_onThemeApplied) _onThemeApplied(display);
+        }
         break;
       }
       case 'hat:ping':

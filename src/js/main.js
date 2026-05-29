@@ -48,6 +48,7 @@ import {
   EMBED_MODE, _postToHost, _emitPatternChanged, initEmbedListener, importHatList,
   setEditorRef as embedSetEditorRef,
   setSidebarRef as embedSetSidebarRef,
+  setOnThemeApplied,
 } from './embed.js';
 
 import {
@@ -510,6 +511,29 @@ function applyAllSettings(cfg) {
 }
 
 applyAllSettings(_appSettings);
+
+// In embed mode, keep _appSettings.display in sync with host theme so the Settings
+// modal (Display tab) and Export show the actual current colors, not dark defaults.
+if (EMBED_MODE) {
+  setOnThemeApplied((display) => {
+    _appSettings = {
+      ..._appSettings,
+      display: {
+        font:   display.font   || _appSettings.display?.font,
+        colors: { ...(_appSettings.display?.colors || {}), ...(display.colors || {}) },
+      },
+    };
+  });
+  // Add notice in Display tab that colors are managed by the host application
+  const displayPane = document.getElementById('settings-pane-display');
+  if (displayPane) {
+    const notice = document.createElement('p');
+    notice.className = 'settings-hint';
+    notice.style.cssText = 'margin-bottom:10px;font-style:italic;';
+    notice.textContent = 'Colors are provided by the host application. Changes apply for the current session only.';
+    displayPane.prepend(notice);
+  }
+}
 
 // Source panel toggle
 document.getElementById('source-toggle').onclick = () => {
