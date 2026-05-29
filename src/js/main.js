@@ -806,15 +806,16 @@ document.getElementById('settings-import-input').addEventListener('change', (e) 
         general: { ...DEFAULTS.general, ...parsed.general },
         audio:   { ...DEFAULTS.audio,   ...parsed.audio   },
         layout:  { ...DEFAULTS.layout,  ...parsed.layout  },
-        // In embed mode the host owns display; ignore imported colors so the
-        // modal stays in sync with the actual rendered theme.
-        display: EMBED_MODE ? _appSettings.display : {
+        display: {
           font:   parsed.display?.font || DEFAULTS.display.font,
           colors: { ...DEFAULTS.display.colors, ...parsed.display?.colors }
         },
         srcCollapsed: _appSettings.srcCollapsed
       };
       applyAllSettings(_appSettings);
+      // applyAllSettings skips CSS vars in embed mode (host owns theme), so
+      // apply display explicitly here so imported colors actually take effect.
+      if (EMBED_MODE) applySettings({ display: _appSettings.display });
       saveSettings(_appSettings);
       populateSettingsModal(_appSettings);
       if (state.parsed?.ok) renderGrid(state.parsed);
