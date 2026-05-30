@@ -34,7 +34,7 @@ import {
 import {
   startPlayback, stopPlayback, _playing,
   setEmbedRef as audioSetEmbedRef,
-  setMasterVolume, setGhostVolume, setDoumNote,
+  setMasterVolume, setGhostVolume, setDoumNote, setNoteSustain,
 } from './audio.js';
 
 import {
@@ -48,6 +48,7 @@ import {
   EMBED_MODE, _postToHost, _emitPatternChanged, initEmbedListener, importHatList,
   setEditorRef as embedSetEditorRef,
   setSidebarRef as embedSetSidebarRef,
+  setAudioRef as embedSetAudioRef,
   setOnThemeApplied,
 } from './embed.js';
 
@@ -374,69 +375,283 @@ document.getElementById('overlay').onclick = e => {
 };
 
 // Export modal
-document.getElementById('btn-export').onclick = () => {
-  import('./state.js').then(({ _customPatterns }) => {
-    const sel = document.getElementById('export-what');
-    sel.innerHTML = '';
-    const optCur = document.createElement('option');
-    optCur.value = '__current'; optCur.textContent = 'Current pattern (.hat.txt)';
-    sel.appendChild(optCur);
-    ListStore.getAll().forEach(lst => {
-      const o = document.createElement('option');
-      o.value = 'list::' + lst.id;
-      o.textContent = `List: ${lst.name} (.hatlist.json)`;
-      sel.appendChild(o);
-    });
-    if (_customPatterns.length > 0) {
-      const o = document.createElement('option');
-      o.value = '__custom'; o.textContent = 'All custom patterns (.hatlist.json)';
-      sel.appendChild(o);
-    }
-    document.getElementById('export-modal').classList.add('show');
-  });
-};
 function downloadBlob(content, filename, mime) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([content], { type: mime }));
   a.download = filename; a.click();
 }
+
+function _refreshExportSuffixes() {
+  const isPdf = document.getElementById('export-how').value === 'pdf';
+  document.querySelectorAll('#export-what option').forEach(o => {
+    const type = o.dataset.exportType;
+    const lbl  = o.dataset.baseLabel || o.textContent;
+    if (!o.dataset.baseLabel) o.dataset.baseLabel = lbl;
+    if (type === 'hat')     o.textContent = lbl + (isPdf ? ' (.hat.pdf)'     : ' (.hat.txt)');
+    if (type === 'hatlist') o.textContent = lbl + (isPdf ? ' (.hatlist.pdf)' : ' (.hatlist.json)');
+  });
+  document.getElementById('export-ok').textContent = isPdf ? 'Open PDF' : 'Download';
+}
+
+document.getElementById('export-how').addEventListener('change', _refreshExportSuffixes);
+
+document.getElementById('btn-export').onclick = () => {
+  import('./state.js').then(({ _customPatterns }) => {
+    const sel = document.getElementById('export-what');
+    sel.innerHTML = '';
+
+    const mkOpt = (value, label, type) => {
+      const o = document.createElement('option');
+      o.value = value; o.dataset.exportType = type; o.dataset.baseLabel = label;
+      sel.appendChild(o);
+    };
+    mkOpt('__current', 'Current pattern', 'hat');
+    ListStore.getAll().forEach(lst => mkOpt('list::' + lst.id, `List: ${lst.name}`, 'hatlist'));
+    if (_customPatterns.length > 0) mkOpt('__custom', 'All custom patterns', 'hatlist');
+
+    _refreshExportSuffixes();
+    document.getElementById('export-modal').classList.add('show');
+  });
+};
+
 document.getElementById('export-cancel').onclick = () => document.getElementById('export-modal').classList.remove('show');
 document.getElementById('export-modal').onclick = e => {
   if (e.target === document.getElementById('export-modal')) document.getElementById('export-modal').classList.remove('show');
 };
+
 document.getElementById('export-ok').onclick = () => {
   import('./state.js').then(({ _customPatterns }) => {
+    const how = document.getElementById('export-how').value;
     const val = document.getElementById('export-what').value;
-    if (val === '__current') {
-      const title = (state.parsed?.meta?.title || 'pattern').replace(/\s+/g, '-').toLowerCase();
-      downloadBlob(document.getElementById('source').value, title + '.hat.txt', 'text/plain');
-    } else if (val === '__custom') {
-      const payload = JSON.stringify({
-        version: 1, type: 'hat-custom-patterns',
-        patterns: _customPatterns.map(cp => ({ name: cp.title, time: cp.time || '', grid: cp.grid || '', hat: cp.hat }))
-      }, null, 2);
-      downloadBlob(payload, 'custom-patterns.hatlist.json', 'application/json');
-    } else if (val.startsWith('list::')) {
-      const listId = val.slice(6);
-      const lst = ListStore.getAll().find(l => l.id === listId);
-      if (!lst) return;
-      const patterns = lst.items.map(item => {
-        if (item.type === 'library') {
-          const [cat, pname] = item.ref.split('::');
-          const p = PATTERNS.find(x => x.cat === cat && x.name === pname);
-          return p ? { name: p.name, cat: p.cat, time: p.time, grid: p.grid, hat: p.hat } : null;
-        } else {
-          const cp = StorageStore.load(item.ref);
-          return cp ? { name: cp.title, time: cp.time || '', grid: cp.grid || '', hat: cp.hat } : null;
-        }
-      }).filter(Boolean);
-      const payload = JSON.stringify({ version: 1, type: 'hat-list', name: lst.name, patterns }, null, 2);
-      const fname = lst.name.replace(/\s+/g, '-').toLowerCase() + '.hatlist.json';
-      downloadBlob(payload, fname, 'application/json');
+
+    if (how === 'pdf') {
+      _exportPDF(val, _customPatterns);
+    } else {
+      _exportSource(val, _customPatterns);
     }
     document.getElementById('export-modal').classList.remove('show');
   });
 };
+
+function _exportSource(val, _customPatterns) {
+  if (val === '__current') {
+    const title = (state.parsed?.meta?.title || 'pattern').replace(/\s+/g, '-').toLowerCase();
+    downloadBlob(document.getElementById('source').value, title + '.hat.txt', 'text/plain');
+  } else if (val === '__custom') {
+    const payload = JSON.stringify({
+      version: 1, type: 'hat-custom-patterns',
+      patterns: _customPatterns.map(cp => ({ name: cp.title, time: cp.time || '', grid: cp.grid || '', hat: cp.hat }))
+    }, null, 2);
+    downloadBlob(payload, 'custom-patterns.hatlist.json', 'application/json');
+  } else if (val.startsWith('list::')) {
+    const listId = val.slice(6);
+    const lst = ListStore.getAll().find(l => l.id === listId);
+    if (!lst) return;
+    const patterns = lst.items.map(item => {
+      if (item.type === 'library') {
+        const [cat, pname] = item.ref.split('::');
+        const p = PATTERNS.find(x => x.cat === cat && x.name === pname);
+        return p ? { name: p.name, cat: p.cat, time: p.time, grid: p.grid, hat: p.hat } : null;
+      } else {
+        const cp = StorageStore.load(item.ref);
+        return cp ? { name: cp.title, time: cp.time || '', grid: cp.grid || '', hat: cp.hat } : null;
+      }
+    }).filter(Boolean);
+    const payload = JSON.stringify({ version: 1, type: 'hat-list', name: lst.name, patterns }, null, 2);
+    downloadBlob(payload, lst.name.replace(/\s+/g, '-').toLowerCase() + '.hatlist.json', 'application/json');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PDF EXPORT
+// ─────────────────────────────────────────────
+
+function _exportPDF(val, _customPatterns) {
+  let patternsData = [];
+  if (val === '__current') {
+    if (state.parsed?.ok) patternsData = [{ title: state.parsed.meta?.title || 'Untitled', parsed: state.parsed }];
+  } else if (val === '__custom') {
+    patternsData = _customPatterns.map(cp => {
+      const p = parseHAT(cp.hat);
+      return p.ok ? { title: cp.title, parsed: p } : null;
+    }).filter(Boolean);
+  } else if (val.startsWith('list::')) {
+    const listId = val.slice(6);
+    const lst = ListStore.getAll().find(l => l.id === listId);
+    if (lst) {
+      patternsData = lst.items.map(item => {
+        let hat = null, title = '';
+        if (item.type === 'library') {
+          const [cat, pname] = item.ref.split('::');
+          const p = PATTERNS.find(x => x.cat === cat && x.name === pname);
+          if (p) { hat = p.hat; title = p.name; }
+        } else {
+          const cp = StorageStore.load(item.ref);
+          if (cp) { hat = cp.hat; title = cp.title; }
+        }
+        if (!hat) return null;
+        const p = parseHAT(hat);
+        return p.ok ? { title, parsed: p } : null;
+      }).filter(Boolean);
+    }
+  }
+  if (!patternsData.length) { showToast('Nothing to export.'); return; }
+  const html = _buildPDFHtml(patternsData);
+  const w = window.open('', '_blank');
+  if (!w) { showToast('Pop-up blocked — allow pop-ups to export PDF.'); return; }
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+}
+
+function _pdfEsc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function _getCellClass(hit, hand) {
+  if (!hit || hit === '-') return 'rest';
+  if (hit === '•') return 'ghost';
+  const h = hand.toLowerCase();
+  if (hit === 'D' || hit === 'd') return h + '-doum' + (hit === 'd' ? ' muted' : '');
+  if (hit === 'T' || hit === 't') return h + '-tak'  + (hit === 't' ? ' muted' : '');
+  if (hit === 'K' || hit === 'k') return h + '-kek'  + (hit === 'k' ? ' muted' : '');
+  if (hit === 'S' || hit === 's') return 'slap'       + (hit === 's' ? ' muted' : '');
+  return h + '-note';
+}
+
+function _renderHatSystem(barItems, meta, cellMm) {
+  let h = '<div class="hat-system">';
+  const secLabel = barItems.find(b => b.secLabel)?.secLabel;
+  if (secLabel) h += `<div class="section-label">${_pdfEsc(secLabel)}</div>`;
+
+  for (const rowType of ['C', 'R', 'L']) {
+    h += `<div class="staff-line">`;
+    h += `<div class="row-label ${rowType}">${rowType}</div>`;
+    h += `<div class="bars-wrap">`;
+    for (const { bar } of barItems) {
+      h += '<div class="bar"><div class="bar-sep"></div>';
+      bar.cols.forEach((col, ci) => {
+        let cls = 'cell';
+        let txt = '';
+        if (rowType === 'C') {
+          cls += ' c-cell';
+          txt = col.countTok || '';
+        } else {
+          const hd = col[rowType];
+          if (hd) {
+            const hit = hd.hit || '-';
+            const mod = hd.mod === '*' ? '*' : '';
+            txt = hit === '-' ? '' : hit + mod;
+            cls += ' ' + _getCellClass(hit, rowType);
+          }
+        }
+        if (ci > 0 && col.beatStart) cls += ' beat-start';
+        else if (ci > 0 && col.sub)   cls += ' sub-start';
+        h += `<div class="${cls}" style="width:${cellMm}mm">${_pdfEsc(txt)}</div>`;
+      });
+      h += '</div>';
+    }
+    h += '<div class="bar-sep bar-end"></div>';
+    h += '</div></div>';
+  }
+  return h + '</div>';
+}
+
+function _buildPatternPDFSection(parsed, title) {
+  const meta = parsed.meta || {};
+  const USABLE_MM = 175, LABEL_MM = 10, SEP_MM = 1.5;
+  const GRID_MM = USABLE_MM - LABEL_MM;
+
+  const allBars = parsed.sections.flatMap(s => s.bars);
+  if (!allBars.length) return '';
+
+  const avgCols = allBars.reduce((s, b) => s + b.cols.length, 0) / allBars.length;
+  const barsPerSystem = Math.max(1, Math.floor(GRID_MM / (avgCols * 6 + SEP_MM)));
+  const cellMm = Math.min(9, Math.max(4.5, (GRID_MM - barsPerSystem * SEP_MM) / (barsPerSystem * avgCols)));
+
+  // Flatten bars with section-label markers
+  const flatBars = [];
+  for (const sec of parsed.sections) {
+    sec.bars.forEach((bar, bi) => flatBars.push({ bar, secLabel: bi === 0 ? sec.label || null : null }));
+  }
+
+  let h = '<div class="pat-header">';
+  h += `<div class="pat-title">${_pdfEsc(title)}</div>`;
+  const mp = [];
+  if (meta.tempo) mp.push(meta.tempo + ' BPM');
+  if (meta.time)  mp.push(meta.time);
+  if (meta.grid)  mp.push(meta.grid + ' grid');
+  if (mp.length) h += `<div class="pat-meta">${mp.map(_pdfEsc).join(' · ')}</div>`;
+
+  if (meta._noteNames?.length) {
+    h += '<div class="notes-legend">';
+    meta._noteNames.forEach((name, i) => {
+      let num = String(i + 1);
+      if (meta._noteMap) {
+        const entry = Object.entries(meta._noteMap).find(([, n]) => n === name);
+        if (entry) num = entry[0];
+      }
+      h += `<span class="note-item"><b>${_pdfEsc(num)}</b>\u202f=\u202f${_pdfEsc(name)}</span>`;
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+
+  for (let si = 0; si < flatBars.length; si += barsPerSystem) {
+    h += _renderHatSystem(flatBars.slice(si, si + barsPerSystem), meta, cellMm);
+  }
+  return h;
+}
+
+function _buildPDFHtml(patternsData) {
+  const css = `
+    @page { size: A4 portrait; margin: 15mm 15mm 20mm 15mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', Courier, monospace; font-size: 9pt; color: #1a1a1a; background: #fff; }
+    .pat-page { page-break-after: always; padding-bottom: 8mm; }
+    .pat-page:last-child { page-break-after: avoid; }
+    .pat-header { margin-bottom: 5mm; padding-bottom: 3mm; border-bottom: 1.5px solid #c0b0a0; }
+    .pat-title { font-size: 19pt; font-weight: 700; font-family: Georgia, serif; color: #1a1a1a; line-height: 1.15; }
+    .pat-meta  { font-size: 9pt; font-family: Arial, sans-serif; color: #5a4d3e; margin-top: 2mm; }
+    .notes-legend { display: flex; flex-wrap: wrap; gap: 2px 6px; margin-top: 2.5mm; font-size: 8pt; font-family: Arial, sans-serif; }
+    .note-item { background: #f2ece4; padding: 1px 5px; border-radius: 2px; color: #3a3027; }
+    .hat-system { margin-bottom: 3.5mm; page-break-inside: avoid; }
+    .section-label { font-size: 7pt; font-family: Arial, sans-serif; text-transform: uppercase;
+                     letter-spacing: 0.12em; color: #a09080; margin-bottom: 1.5mm; margin-top: 3mm; }
+    .staff-line { display: flex; align-items: stretch; }
+    .row-label  { width: 10mm; flex-shrink: 0; font-size: 7pt; font-weight: 700; font-family: Arial, sans-serif;
+                  display: flex; align-items: center; justify-content: center; color: #888; padding-right: 1mm; }
+    .row-label.R { color: #2c5e7a; }
+    .row-label.L { color: #8e5828; }
+    .row-label.C { color: #b8a898; font-weight: 400; }
+    .bars-wrap { display: flex; flex-wrap: nowrap; flex: 1; }
+    .bar { display: flex; align-items: stretch; }
+    .bar-sep { width: 1.5px; background: #888; flex-shrink: 0; margin-top: 1px; margin-bottom: 1px; }
+    .bar-end  { background: #666; }
+    .cell { height: 6.5mm; display: flex; align-items: center; justify-content: center;
+            font-size: 7pt; font-family: 'Courier New', Courier, monospace; font-weight: 500;
+            border-bottom: 0.5px solid #e4dcd0; }
+    .c-cell  { font-size: 6pt; color: #c0b0a0; height: 4.5mm; font-weight: 400; }
+    .beat-start { border-left: 1.5px solid #7a9aaa; }
+    .sub-start  { border-left: 0.5px dashed #c8c0b0; }
+    .rest  { color: #ddd; }
+    .ghost { color: #bbb; background: #f8f4ee; }
+    .muted { opacity: 0.55; }
+    .r-doum { color: #1e4e6a; background: #d8e8f2; font-weight: 700; }
+    .r-tak  { color: #3d7395; background: #e2ecf5; }
+    .r-kek  { color: #7a6848; background: #f0e8d8; }
+    .r-note { color: #1a7050; background: #e0f2e8; font-weight: 700; }
+    .l-doum { color: #1e4e6a; background: #d8e8f2; font-weight: 700; }
+    .l-tak  { color: #3d7395; background: #e2ecf5; }
+    .l-kek  { color: #8e5828; background: #f5e2c8; font-weight: 700; }
+    .l-note { color: #7a4e18; background: #f5e2c8; font-weight: 700; }
+    .slap   { color: #b83030; background: #f7e0dc; }
+  `;
+  const body = patternsData.map(pd =>
+    `<div class="pat-page">${_buildPatternPDFSection(pd.parsed, pd.title)}</div>`
+  ).join('\n');
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>HAT Tablature</title><style>${css}</style></head><body>${body}</body></html>`;
+}
 
 // Notes inputs (in Settings > General) — apply on change
 function _applyNotesFromSettings() {
@@ -496,10 +711,29 @@ function applyAllSettings(cfg) {
   setMasterVolume(cfg.audio?.masterVolume ?? 1.0);
   setGhostVolume(cfg.audio?.ghostVolume ?? 1.0);
   setDoumNote(cfg.audio?.doumNote || '');
+  setNoteSustain(cfg.audio?.noteSustain ?? 2.0);
   setShowNoteNums(cfg.general?.noteDisplay === 'numbers');
 }
 
 applyAllSettings(_appSettings);
+
+// Wire audio ref for volume/sustain sync with host (embed.js)
+embedSetAudioRef({
+  setMasterVolume,
+  setNoteSustain,
+  updateVolSettings: (vol) => {
+    _appSettings = { ..._appSettings, audio: { ..._appSettings.audio, masterVolume: vol } };
+    const el = document.getElementById('settings-volume');
+    const ve = document.getElementById('settings-volume-val');
+    if (el) { el.value = vol; if (ve) ve.textContent = Math.round(vol * 100) + '%'; }
+  },
+  updateSustainSettings: (sustain) => {
+    _appSettings = { ..._appSettings, audio: { ..._appSettings.audio, noteSustain: sustain } };
+    const el = document.getElementById('settings-sustain');
+    const ve = document.getElementById('settings-sustain-val');
+    if (el) { el.value = sustain; if (ve) ve.textContent = sustain.toFixed(1) + 's'; }
+  },
+});
 
 // In embed mode, keep _appSettings.display in sync with host theme so the Settings
 // modal (Display tab) and Export show the actual current colors, not dark defaults.
@@ -666,6 +900,9 @@ function populateSettingsModal(cfg) {
   const gvol = cfg.audio?.ghostVolume ?? 1.0;
   document.getElementById('settings-ghost-volume').value = gvol;
   document.getElementById('settings-ghost-volume-val').textContent = Math.round(gvol * 100) + '%';
+  const sustain = cfg.audio?.noteSustain ?? 2.0;
+  document.getElementById('settings-sustain').value = sustain;
+  document.getElementById('settings-sustain-val').textContent = sustain.toFixed(1) + 's';
   // Layout
   document.getElementById('settings-fliprl').checked = cfg.layout?.flipRL || false;
   // Display
@@ -740,6 +977,7 @@ document.getElementById('settings-volume').addEventListener('input', () => {
   _appSettings = { ..._appSettings, audio: { ..._appSettings.audio, masterVolume: vol } };
   setMasterVolume(vol);
   saveSettings(_appSettings);
+  _postToHost({ type: 'hat:volume-changed', masterVolume: vol });
 });
 
 // Audio: ghost note volume
@@ -749,6 +987,16 @@ document.getElementById('settings-ghost-volume').addEventListener('input', () =>
   _appSettings = { ..._appSettings, audio: { ..._appSettings.audio, ghostVolume: gvol } };
   setGhostVolume(gvol);
   saveSettings(_appSettings);
+});
+
+// Audio: note sustain
+document.getElementById('settings-sustain').addEventListener('input', () => {
+  const sustain = +document.getElementById('settings-sustain').value;
+  document.getElementById('settings-sustain-val').textContent = sustain.toFixed(1) + 's';
+  _appSettings = { ..._appSettings, audio: { ..._appSettings.audio, noteSustain: sustain } };
+  setNoteSustain(sustain);
+  saveSettings(_appSettings);
+  _postToHost({ type: 'hat:sustain-changed', sustain });
 });
 
 // Layout: flip R/L

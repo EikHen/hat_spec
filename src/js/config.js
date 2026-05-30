@@ -9,7 +9,8 @@ export const DEFAULTS = {
   audio: {
     masterVolume: 1.0,
     ghostVolume: 0.5,       // volume multiplier for ghost notes (0–1); max is 2× louder
-    doumNote: ''            // empty = default percussion; e.g. 'D3' plays that note
+    doumNote: '',           // empty = default percussion; e.g. 'D3' plays that note
+    noteSustain: 2.0        // seconds — decay duration for pan note hits (default/doum)
   },
   layout: {
     flipRL: false           // swap R and L rows in the rendered grid (display-only)

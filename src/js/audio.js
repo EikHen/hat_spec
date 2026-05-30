@@ -9,6 +9,9 @@ let _actx=null, _noiseBuf=null;
 let _masterVolume = 1.0;
 export function setMasterVolume(v) { _masterVolume = Math.max(0, Math.min(1, +v || 0)); }
 
+let _noteSustain = 2.0;
+export function setNoteSustain(v) { _noteSustain = Math.max(0.2, Math.min(8.0, +v || 2.0)); }
+
 let _doumNote = '';
 export function setDoumNote(v) { _doumNote = typeof v === 'string' ? v.trim() : ''; }
 
@@ -79,7 +82,7 @@ export function playHit(actx, t, hit, _scale=1) {
   switch(hit) {
     case 'D':
       if (_doumNote) {
-        const dFreq=noteToHz(_doumNote), dur2=2.0;
+        const dFreq=noteToHz(_doumNote), dur2=_noteSustain;
         tone(t,dFreq,'sine',0.50,dur2); tone(t,dFreq*2.0,'sine',0.16,dur2*0.55); tone(t,dFreq*3.0,'sine',0.06,dur2*0.35);
         noise(t,0.018,0,0,0.08,900);
       } else { tone(t,92,'sine',0.60,0.75,true); noise(t,0.028,0,0,0.30,280); }
@@ -94,7 +97,7 @@ export function playHit(actx, t, hit, _scale=1) {
     case '•': noise(t,0.09,500,10,0.24*_ghostVolume); tone(t,240,'sine',0.056*_ghostVolume,0.08); break;
     default: {
       const freq = noteToHz(hit);
-      const dur = 2.0;
+      const dur = _noteSustain;
       tone(t, freq,       'sine', 0.50, dur);
       tone(t, freq * 2.0, 'sine', 0.16, dur * 0.55);
       tone(t, freq * 3.0, 'sine', 0.06, dur * 0.35);

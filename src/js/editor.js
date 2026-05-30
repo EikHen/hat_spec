@@ -124,8 +124,13 @@ function updateSubdivisionMeta() {
 export function toggleSubdiv(sec, bar, col) {
   if (col===0) return;
   const c=getColObj(sec,bar,col);
-  if (c.beatStart) return;
-  pushUndo(); c.sub=!c.sub;
+  pushUndo();
+  if (c.beatStart) {
+    c.beatStart=false; c.sub=true;
+    updateSubdivisionMeta();
+  } else {
+    c.sub=!c.sub;
+  }
   syncSourceFromModel(); renderGrid(state.parsed);
 }
 

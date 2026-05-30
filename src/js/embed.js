@@ -27,6 +27,11 @@ export function setEditorRef(ref) { Object.assign(_editorRef, ref); }
 export const _sidebarRef = {};
 export function setSidebarRef(ref) { Object.assign(_sidebarRef, ref); }
 
+// Audio ref: { setMasterVolume, setNoteSustain, updateVolSettings, updateSustainSettings }
+// updateVol*/updateSustain* are closures defined in main.js that also sync _appSettings + DOM.
+export const _audioRef = {};
+export function setAudioRef(ref) { Object.assign(_audioRef, ref); }
+
 // Called by main.js to receive a copy of display settings whenever hat:set-theme is applied.
 // Lets main.js keep _appSettings.display in sync with the actual host-provided theme.
 let _onThemeApplied = null;
@@ -171,6 +176,20 @@ export function initEmbedListener() {
           applySettings({ display });
           if (_onThemeApplied) _onThemeApplied(display);
         }
+        break;
+      }
+      case 'hat:set-volume': {
+        const vol = Math.max(0, Math.min(1, +msg.masterVolume || 0));
+        const { setMasterVolume, updateVolSettings } = _audioRef;
+        if (setMasterVolume) setMasterVolume(vol);
+        if (updateVolSettings) updateVolSettings(vol);
+        break;
+      }
+      case 'hat:set-sustain': {
+        const sustain = Math.max(0.2, Math.min(8, +msg.sustain || 2.0));
+        const { setNoteSustain, updateSustainSettings } = _audioRef;
+        if (setNoteSustain) setNoteSustain(sustain);
+        if (updateSustainSettings) updateSustainSettings(sustain);
         break;
       }
       case 'hat:ping':

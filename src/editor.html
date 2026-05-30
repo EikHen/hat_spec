@@ -165,6 +165,13 @@
             <span id="settings-ghost-volume-val" aria-live="polite">100%</span>
           </div>
         </div>
+        <div class="settings-row">
+          <label class="settings-label" for="settings-sustain">Note sustain</label>
+          <div class="settings-slider-row">
+            <input type="range" id="settings-sustain" min="0.2" max="6" step="0.1" value="2" aria-valuemin="0.2" aria-valuemax="6">
+            <span id="settings-sustain-val" aria-live="polite">2.0s</span>
+          </div>
+        </div>
       </div>
 
       <!-- Layout -->
@@ -296,6 +303,12 @@
 <div id="export-modal">
   <div class="modal">
     <h2>Export</h2>
+    <label class="np-label">How to export
+      <select id="export-how">
+        <option value="source">HAT source</option>
+        <option value="pdf">PDF (DIN A4)</option>
+      </select>
+    </label>
     <label class="np-label">What to export
       <select id="export-what"></select>
     </label>
