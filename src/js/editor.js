@@ -107,6 +107,28 @@ export function toggleFlam(sec, bar, col, hand) {
 //  SUBDIVISION / BEAT
 // ─────────────────────────────────────────────
 
+export let _syncSubdivisions = false;
+export function setSyncSubdivisions(v) { _syncSubdivisions = v; }
+
+// Copy sub/beatStart from the source col to every other bar of equal length.
+function syncSubdivToSameLengthBars(sec, bar, col) {
+  if (!_syncSubdivisions) return;
+  const sections = state.parsed.sections;
+  const srcCols = sections[sec].bars[bar].cols;
+  const barLen = srcCols.length;
+  const { sub, beatStart } = srcCols[col];
+  for (let si = 0; si < sections.length; si++) {
+    for (let bi = 0; bi < sections[si].bars.length; bi++) {
+      if (si === sec && bi === bar) continue;
+      const b = sections[si].bars[bi];
+      if (b.cols.length === barLen) {
+        b.cols[col].sub = sub;
+        b.cols[col].beatStart = beatStart;
+      }
+    }
+  }
+}
+
 function updateSubdivisionMeta() {
   const bar=state.parsed?.sections?.[0]?.bars?.[0];
   if (!bar?.cols?.length) return;
@@ -131,6 +153,7 @@ export function toggleSubdiv(sec, bar, col) {
   } else {
     c.sub=!c.sub;
   }
+  syncSubdivToSameLengthBars(sec, bar, col);
   syncSourceFromModel(); renderGrid(state.parsed);
 }
 
@@ -141,6 +164,7 @@ export function toggleBeat(sec, bar, col) {
   c.beatStart=!c.beatStart;
   if (c.beatStart) c.sub=false;
   updateSubdivisionMeta();
+  syncSubdivToSameLengthBars(sec, bar, col);
   syncSourceFromModel(); renderGrid(state.parsed);
 }
 

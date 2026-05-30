@@ -26,6 +26,7 @@ import {
   cloneBar,
   copySelected, pasteSelected,
   commitTypeBuf, setCountTok,
+  setSyncSubdivisions,
   setEmbedRef as editorSetEmbedRef,
   setSidebarRef as editorSetSidebarRef,
   setRendererRef as editorSetRendererRef,
@@ -713,6 +714,7 @@ function applyAllSettings(cfg) {
   setDoumNote(cfg.audio?.doumNote || '');
   setNoteSustain(cfg.audio?.noteSustain ?? 2.0);
   setShowNoteNums(cfg.general?.noteDisplay === 'numbers');
+  setSyncSubdivisions(cfg.general?.syncSubdivisions || false);
 }
 
 applyAllSettings(_appSettings);
@@ -904,6 +906,7 @@ function populateSettingsModal(cfg) {
   document.getElementById('settings-sustain').value = sustain;
   document.getElementById('settings-sustain-val').textContent = sustain.toFixed(1) + 's';
   // Layout
+  document.getElementById('settings-sync-subdiv').checked = cfg.general?.syncSubdivisions || false;
   document.getElementById('settings-fliprl').checked = cfg.layout?.flipRL || false;
   // Display
   document.getElementById('settings-font').value = cfg.display?.font || DEFAULTS.display.font;
@@ -997,6 +1000,14 @@ document.getElementById('settings-sustain').addEventListener('input', () => {
   setNoteSustain(sustain);
   saveSettings(_appSettings);
   _postToHost({ type: 'hat:sustain-changed', sustain });
+});
+
+// Layout: sync subdivisions
+document.getElementById('settings-sync-subdiv').addEventListener('change', () => {
+  const sync = document.getElementById('settings-sync-subdiv').checked;
+  _appSettings = { ..._appSettings, general: { ..._appSettings.general, syncSubdivisions: sync } };
+  setSyncSubdivisions(sync);
+  saveSettings(_appSettings);
 });
 
 // Layout: flip R/L

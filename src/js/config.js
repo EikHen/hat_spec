@@ -4,7 +4,8 @@
 export const DEFAULTS = {
   version: 1,
   general: {
-    noteDisplay: 'names'    // 'names' | 'numbers'
+    noteDisplay: 'names',   // 'names' | 'numbers'
+    syncSubdivisions: false // sync | and || edits to all bars of the same length
   },
   audio: {
     masterVolume: 1.0,
